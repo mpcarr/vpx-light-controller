@@ -160,7 +160,7 @@ lightCtrl.Pulse L01, 0 'Pulse the light once, no repeat (total 1 pulse)
 lightCtrl.Pulse L01, 1 'Pulse the light, repeat the pulse once (total 2 pulses)
 ```
 
-![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightpulse.gif?raw=true)
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/flashpulse.gif?raw=true)
 
 ### Light Pulse With Profile <a id="pulseWithProfile"></a>
 
