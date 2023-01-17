@@ -679,7 +679,7 @@ Class LStateController
                                     x.color = c
                                 End If
                                 If Not IsNull(cf) Then
-                                    x.colorFUll = cf
+                                    x.colorFull = cf
                                 End If
                             Next
                         Else
