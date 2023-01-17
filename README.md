@@ -73,6 +73,8 @@ To start a light blinking you use: **Blink**. This will use the blink pattern of
 lightCtrl.Blink L01
 ```
 
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightblink.gif?raw=true)
+
 ## Light Color
 
 VPX lights have color and fullColor properties. To change the light color use: **Color**
