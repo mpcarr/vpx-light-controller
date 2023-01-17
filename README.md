@@ -76,7 +76,7 @@ To turn a light on you use: **On**.
 lightCtrl.LightOn L01
 ```
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lighton.gif?raw=true)
 
 
 
@@ -88,7 +88,7 @@ To start a light blinking you use: **Blink**. This will use the blink pattern of
 lightCtrl.Blink L01
 ```
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightblink.gif?raw=true)
 
 ## Light Color <a id="lightColor"></a>
 
@@ -104,7 +104,7 @@ lightCtrl.LightColor L01, Array(RGB(255,0,0), RGB(0,255,0)) 'Sets the color and 
 lightCtrl.LightColor L01, Array(Null, RGB(0,0,255)) 'Sets the fullColor to Blue
 ```
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightcolor.gif?raw=true)
 
 ## Light Level <a id="lightLevel"></a>
 
@@ -116,7 +116,7 @@ lightCtrl.LightLevel L01, 50 'Set the lights maximum brightness to 50%
 lightCtrl.LightLevel L01, 100 'Set the lights maximum brightness to 100%
 ```
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightlevel.gif?raw=true)
 
 
 ## Light Utilities <a id="lightUtilities"></a>
@@ -139,7 +139,7 @@ Turns a light on with a short flickering sequence
 lightCtrl.LightOnWithFlicker L01
 ```
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightflicker.gif?raw=true)
 
 
 ### Light Pulse <a id="pulse"></a>
@@ -154,7 +154,7 @@ lightCtrl.Pulse L01, 0 'Pulse the light once, no repeat (total 1 pulse)
 lightCtrl.Pulse L01, 1 'Pulse the light, repeat the pulse once (total 2 pulses)
 ```
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/flashpulse.gif?raw=true)
 
 ### Light Pulse With Profile <a id="pulseWithProfile"></a>
 
@@ -182,7 +182,7 @@ The first parameter is a name for the shot so we can reference it later.
 The second parameter is the vpx light object
 The third parameter is the color you want this shot to be.
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/addshot.gif?raw=true)
 
 ## Remove Shot <a id="removeShot"></a>
 
@@ -255,7 +255,7 @@ The controller supports writing your own custom sequences using a **SequenceRunn
 
 Lets say you have a set of 3 lights and you want to light one after the other on repeat.
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/customseq.gif?raw=true)
 
 The sequence might this:
 
@@ -312,9 +312,9 @@ For more complex light sequences the controller supports exporting your table li
 
 https://github.com/missionpinball/showcreator
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/showcreator.gif?raw=true)
 
-![Alt Text
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/vpxshow.gif?raw=true)
 
 Show Creator is a tool for creating lightshows in MPF (Mission Pinball Framework). It takes a YAML file which describes your light locations and exports a YAML file with key frame data of the light show you created.
 
