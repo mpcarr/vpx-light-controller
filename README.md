@@ -61,7 +61,7 @@ To turn a light on you use: **On**.
 lightCtrl.LightOn L01
 ```
 
-![Alt Text](https://mega.nz/file/MRsWSITL#CVr_gHCXfYfG8iZaIzvlMVtqzbgZKX9ndGnoWhDyQzk)
+![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lighton.gif?raw=true)
 
 
 
