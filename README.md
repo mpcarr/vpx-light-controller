@@ -6,7 +6,7 @@ A class to help vpx originals use nFozzy Lampz by managing light states and sequ
 
   - [Installing](#installing)
   - [Examples](#examples)
-  - [Register Lights](#registerLights)
+  - [Register Lights](#registerLights1)
   - [VPX LightMapper Utils](#vpxLightMapperUtils)
     - [Room Brightness](#roombrightness)
     - [Use Toolkit Colored Lightmaps](#usecoloredLightmaps)
@@ -18,13 +18,13 @@ A class to help vpx originals use nFozzy Lampz by managing light states and sequ
     - [Light Utilities](#lightUtilities)
         - [Light On With Color](#lightOnWithColor)
         - [Light On With Flicker](#lightFlicker)
-        - [Light Pulse](#lightPulse)
-        - [Light Pulse With Profile](#lightPulseWithProfile)
+        - [Light Pulse](#pulse)
+        - [Light Pulse With Profile](#pulseWithProfile)
   - [Managing Shots](#managingShots)
     - [Add Shot](#addShot)
     - [Remove Shot](#removeShot)
-    - [Remove All Shots](#removeallShots)
-    - [Is Shot Lit](#IsShotLit)
+    - [Remove All Shots](#removeAllShots)
+    - [Is Shot Lit](#isShotLit)
   - [Syncing With VPX Lights](#syncWithVPXLights)
   - [Light Sequences](#lightSequences)    
     - [VPX Sequences](#vpxSequences)
@@ -44,7 +44,7 @@ A class to help vpx originals use nFozzy Lampz by managing light states and sequ
 
 TODO
 
-# Register Lights <a name="registerLights"></a>
+# Register Lights <a id="registerLights1"></a>
 
 You need to register the lights you want to control with the class. To do this, add the below code after you have assigned all your lights with Lampz. The best place to do this is at the end of the InitLampNF sub.
 
@@ -52,9 +52,9 @@ You need to register the lights you want to control with the class. To do this, 
 lightCtrl.RegisterLights
 ```
 
-# VPX LightMapper Utils
+# VPX LightMapper Utils  <a id="lightmapperUtils"></a>
 
-## Room Brightness
+## Room Brightness  <a id="roombrightness"></a>
 
 To change the Bake Map room brightness use **RoomBrightness** with a value 0-100
 
@@ -62,7 +62,7 @@ To change the Bake Map room brightness use **RoomBrightness** with a value 0-100
 lightCtrl.RoomBrightness 75
 ```
 
-## Use Toolkit Colored Lightmaps
+## Use Toolkit Colored Lightmaps  <a id="usecoloredLightmaps"></a>
 
 To use color the white baked light maps or to use RGB lights without needing the patch the toolkit helper script on each export, you can use **UseToolkitColoredLightMaps**. This will rewrite the UpdateLightMap function to sync the lightmap with the light color
 
@@ -70,11 +70,11 @@ To use color the white baked light maps or to use RGB lights without needing the
 lightCtrl.UseToolkitColoredLightMaps
 ```
 
-# Managing Lights <a name="managingLights"></a>
+# Managing Lights <a id="managingLights"></a>
 
 To control your lights you can call the following functions on the light controller object. All these require you to pass the vpx light as a parameter. E.g. The below examples assume you have a light in vpx called L01
 
-## Light On/Off
+## Light On/Off <a id="lightOn"></a>
 
 To turn a light on you use: **On**.
 
@@ -86,7 +86,7 @@ lightCtrl.LightOn L01
 
 
 
-## Light Blink
+## Light Blink <a id="lightBlink"></a>
 
 To start a light blinking you use: **Blink**. This will use the blink pattern of the vpx light
 
@@ -96,7 +96,7 @@ lightCtrl.Blink L01
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightblink.gif?raw=true)
 
-## Light Color
+## Light Color <a id="lightColor"></a>
 
 VPX lights have color and fullColor properties. To change the light color use: **Color**
 
@@ -112,7 +112,7 @@ lightCtrl.LightColor L01, Array(Null, RGB(0,0,255)) 'Sets the fullColor to Blue
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightcolor.gif?raw=true)
 
-## Light Level
+## Light Level <a id="lightLevel"></a>
 
 All of the lights registerd with the controller will be set to modulate brightness between 0-100. Lampz will fade the light upto this level. To change the level use: **LightLevel**
 
@@ -125,11 +125,11 @@ lightCtrl.LightLevel L01, 100 'Set the lights maximum brightness to 100%
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightlevel.gif?raw=true)
 
 
-## Light Utilities
+## Light Utilities <a id="lightUtilities"></a>
 
 To help control common light events there are some utility functions available:
 
-### Light On With Color
+### Light On With Color <a id="lightOnWithColor"></a>
 
 Turns a light shilst also setting the color
 
@@ -137,7 +137,7 @@ Turns a light shilst also setting the color
 lightCtrl.LightOnWithColor L01, RGB(255,0,0)
 ```
 
-### Light On With Flicker
+### Light On With Flicker <a id="lightFlicker"></a>
 
 Turns a light on with a short flickering sequence
 
@@ -148,7 +148,7 @@ lightCtrl.LightOnWithFlicker L01
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightflicker.gif?raw=true)
 
 
-### Light Pulse
+### Light Pulse <a id="pulse"></a>
 
 Pulses a light with the default pulse sequence. The state of the light does not change. E.g. after the pulse has finished, if the light was previously on, it will be on again.
 
@@ -162,7 +162,7 @@ lightCtrl.Pulse L01, 1 'Pulse the light, repeat the pulse once (total 2 pulses)
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightpulse.gif?raw=true)
 
-### Light Pulse With Profile
+### Light Pulse With Profile <a id="pulseWithProfile"></a>
 
 Pulses a light with a custom pulse sequence. The state of the light does not change. E.g. after the pulse has finished, if the light was previously on, it will be on again.
 
@@ -172,11 +172,11 @@ The second parameter is the pulse sequence to use. Each element in the array is 
 lightCtrl.PulseWithProfile L01, Array(10,50,100,50,0) 0
 ``` 
 
-# Managing Shots
+# Managing Shots <a id="managingShots"></a>
 
 Aside from turning lights on and making them blink, you can add dfferent sequences to lights which run one after the other. You can manually manage this by creating sequence runners and adding / removing sequences. For convience the most common senarnio is to have one light lit for lots of differnt reasons. You may have a light lit for a mode shot but also for a jackpot or combo. The light controller lets you add multiple "Shots" to a light.
 
-## Add Shot
+## Add Shot <a id="addShot"></a>
 
 To add a new shot to a light use: **AddShot**
 
@@ -190,7 +190,7 @@ The third parameter is the color you want this shot to be.
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/addshot.gif?raw=true)
 
-## Remove Shot
+## Remove Shot <a id="removeShot"></a>
 
 To remove a shot from a light use: **RemoveShot**
 
@@ -200,7 +200,7 @@ lightCtrl.RemoveShot "Name"
 
 Call remove shot with the name of the shot you want to remove
 
-## Remove All Shots
+## Remove All Shots <a id="removeAllShots"></a>
 
 To remove all shots from a light use: **RemoveAllShots**
 
@@ -210,7 +210,7 @@ lightCtrl.RemoveAllShots L01
 
 Call remove all shots with the vpx light object
 
-## Is Shot Lit
+## Is Shot Lit <a id="isShotLit"></a>
 
 To check if a shot is current active on the light use: **IsShotLit**
 
@@ -221,7 +221,7 @@ lightCtrl.IsShotLit "Name", L01
 The first parameter is the name of the shot
 The second parameter is the vpx light object
 
-# Sync With VPX Lights
+# Sync With VPX Lights <a id="syncWithVPXLights"></a>
 
 A simple way to use Lampz in your table without any complex seqeuences is to sync your control lights via the GetInPlayState property. You can use the light controller todo this for you by calling **SyncWithVpxLights**. Once enabled, the controller will update Lampz with your control lights.
 
@@ -229,9 +229,9 @@ A simple way to use Lampz in your table without any complex seqeuences is to syn
 lightCtrl.SyncWithVpxLights aLights 'alights is the collection you want to sync with. e.g. All Lights. You can create a smaller set of lights to sync if you wish.
 ```
 
-# Light Sequences
+# Light Sequences <a id="lightSequences"></a>
 
-## VPX Sequences
+## VPX Sequences <a id="vpxSequences"></a>
 
 The light controller can sync your lights to VPX light sequences
 
@@ -255,7 +255,7 @@ lightCtrl.SyncWithVpxLights VpxCollection
 lightCtrl.SetVpxSyncLightColor RGB(255,0,0)
 ```
 
-## Custom Sequences
+## Custom Sequences <a id="customSequences"></a>
 
 The controller supports writing your own custom sequences using a **SequenceRunner** and **LightSequence** items. Each Sequence Runner added to the controller is ran concurrently with other sequence runners. Each Light Sequence added to a runner is ran one after the other (following).
 
@@ -312,7 +312,7 @@ As the above example is set to repeat, you can stop it by using **RemoveLightSeq
 lightCtrl.RemoveLightSeq "_RunnerName_", lSeqTest
 ```
 
-# Show Creator
+# Show Creator <a id="showCreator"></a>
 
 For more complex light sequences the controller supports exporting your table lights so that they can be imported a tool called **showcreator**
 
@@ -326,7 +326,7 @@ Show Creator is a tool for creating lightshows in MPF (Mission Pinball Framework
 
 We can use some functions on the light controller to help us integrate with MPF Show Creator
 
-## Exporting Lights
+## Exporting Lights <a id="exportingLights"></a>
 
 You can export the position of your lights by using **CompileLights**. You need to pass in a vpx collection of the lights you want to export (this lets you have more fine grain control over which lights to animate in show creator).
 
@@ -338,7 +338,7 @@ lightCtrl.CompileLights _VPXCollection_, "filename"
 
 This will export a file you can use in MPF Show Creator.
 
-## Importing Light Shows
+## Importing Light Shows <a id="importingLightShows"></a>
 
 You can import the created lights into your table with the **LoadLightShows** command. This will read light show files saved from Show Creator and compile them to light sequences the controller can run. **LoadLightShows** will also output a file called **lights-out.txt** which contains the compiled vbs code for the light sequence. For development is easier to call **LoadLightShows**, however you should copy the compiled lightshows into your tablescript before sharing it.
 
