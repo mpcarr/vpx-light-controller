@@ -693,10 +693,10 @@ Class LStateController
                     End If
                         
                     
-                    If Lampz.State(idx) = m_currentFrameState(frameStateKey)(0) Then
+                   ' If Lampz.State(idx) = m_currentFrameState(frameStateKey)(0) Then
                         'Debug.print("Forcing callbacks")
                         If Lampz.UseCallBack(idx) then Proc Lampz.name & idx,Lampz.Lvl(idx)*Lampz.Modulate(idx)	'Proc
-                    End If'force object updates (callbacks)
+                   ' End If'force object updates (callbacks)
             	End If
                 
                 Lampz.state(idx) = CInt(m_currentFrameState(frameStateKey)(0)) 'Lampz will handle redundant updates
