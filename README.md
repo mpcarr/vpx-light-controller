@@ -7,6 +7,9 @@ A class to help vpx originals use nFozzy Lampz by managing light states and sequ
   - [Installing](#installing)
   - [Examples](#examples)
   - [Register Lights](#registerLights)
+  - [VPX LightMapper Utils](#vpxLightMapperUtils)
+    - [Room Brightness](#roombrightness)
+    - [Use Toolkit Colored Lightmaps](#usecoloredLightmaps)
   - [Managing Lights](#managingLights)
     - [Light On/Off](#lightOn)
     - [Light Blink](#lightBlink)
@@ -47,6 +50,24 @@ You need to register the lights you want to control with the class. To do this, 
 
 ```
 lightCtrl.RegisterLights
+```
+
+# VPX LightMapper Utils
+
+## Room Brightness
+
+To change the Bake Map room brightness use **RoomBrightness** with a value 0-100
+
+```
+lightCtrl.RoomBrightness 75
+```
+
+## Use Toolkit Colored Lightmaps
+
+To use color the white baked light maps or to use RGB lights without needing the patch the toolkit helper script on each export, you can use **UseToolkitColoredLightMaps**. This will rewrite the UpdateLightMap function to sync the lightmap with the light color
+
+```
+lightCtrl.UseToolkitColoredLightMaps
 ```
 
 # Managing Lights <a name="managingLights"></a>

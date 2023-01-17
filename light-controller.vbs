@@ -3,7 +3,7 @@
 '  
 ' A light state controller for original vpx tables.
 '
-' Documentation: DOCS_URL
+' Documentation: https://github.com/mpcarr/vpx-light-controller#readme
 '
 '***********************************************************************************************************************
 
