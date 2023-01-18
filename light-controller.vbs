@@ -3,7 +3,7 @@
 '  
 ' A light state controller for original vpx tables.
 '
-' Documentation: https://github.com/mpcarr/vpx-light-controller#readme
+' Documentation: DOCS_URL
 '
 '***********************************************************************************************************************
 
@@ -433,12 +433,12 @@ Class LStateController
         Next
     End Sub
 
-    Public Sub SyncVpxTableLightSequence(lightSeq)
+    Public Sub SyncWithVpxLights(lightSeq)
         Execute "m_vpxLightSyncCollection = ColToArray(" & CStr(lightSeq.Collection) & ")"
         m_vpxLightSyncRunning = True
     End Sub
 
-    Public Sub StopTableLightSequence()
+    Public Sub StopSyncWithVpxLights()
         m_vpxLightSyncRunning = False
         m_vpxLightSyncClear = True
 		m_tableSeqColor = Null
@@ -446,7 +446,7 @@ Class LStateController
         m_tableSeqFadeDown = Null
     End Sub
 
-	Public Sub SetTableSequenceColor(color)
+	Public Sub SetVpxSyncLightColor(color)
 		m_tableSeqColor = color
 	End Sub
 
@@ -693,10 +693,10 @@ Class LStateController
                     End If
                         
                     
-                   ' If Lampz.State(idx) = m_currentFrameState(frameStateKey)(0) Then
+                    'If Lampz.State(idx) = m_currentFrameState(frameStateKey)(0) Then
                         'Debug.print("Forcing callbacks")
                         If Lampz.UseCallBack(idx) then Proc Lampz.name & idx,Lampz.Lvl(idx)*Lampz.Modulate(idx)	'Proc
-                   ' End If'force object updates (callbacks)
+                    'End If'force object updates (callbacks)
             	End If
                 
                 Lampz.state(idx) = CInt(m_currentFrameState(frameStateKey)(0)) 'Lampz will handle redundant updates
@@ -731,10 +731,6 @@ Class LStateController
             Dim framesRemaining, seq, color
             seq = lcSeq.Sequence
 
-            color = lcSeq.Color
-			If IsNull(color) Then
-				Debug.print("Color is null")
-			End If
 
             Dim name
             Dim ls, x
@@ -745,13 +741,16 @@ Class LStateController
                     If m_lights.Exists(name) Then
                         Set ls = m_lights(name)
                         
+						color = lcSeq.Color
+
                         If IsNull(color) Then
-							Debug.Print("seq color null")
+							'Debug.Print("seq color null")
 							color = ls.Color
                         End If
 						
                         If Ubound(lsName) = 2 Then
-                            m_assignStateForFrame name, Array(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), Null), ls.Idx)
+							'Debug.Print(lsName(0) & ":" &lsName(2))
+                            m_assignStateForFrame name, Array(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
                         Else
                             m_assignStateForFrame name, Array(lsName(1), color, ls.Idx)
                         End If
@@ -763,6 +762,7 @@ Class LStateController
                 If m_lights.Exists(name) Then
                     Set ls = m_lights(name)
                     
+					color = lcSeq.Color
                     If IsNull(color) Then
                         color = ls.Color
                     End If
