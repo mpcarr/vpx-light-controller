@@ -337,7 +337,7 @@ Class LStateController
                 Dim seq : Set seq = new LCSeq
                 seq.Name = light.name & "Blink"
                 seq.Sequence = m_buildBlinkSeq(light)
-                seq.Color = m_lights(light.name).Color
+                seq.Color = Null
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
