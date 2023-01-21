@@ -1,9 +1,9 @@
 '***********************************************************************************************************************
-' Lights State Controller - 0.5.0
+' Lights State Controller - 0.5.1
 '  
 ' A light state controller for original vpx tables.
 '
-' Documentation: DOCS_URL
+' Documentation: https://github.com/mpcarr/vpx-light-controller
 '
 '***********************************************************************************************************************
 
@@ -616,15 +616,6 @@ Class LStateController
                             'Lampz.state(syncClearLight.idx) = 0
                             Lampz.FadeSpeedUp(syncClearLight.Idx) = 100/30
                             Lampz.FadeSpeedDown(syncClearLight.Idx) = 100/120
-                            
-                            if IsArray(Lampz.obj(syncClearLight.idx)) then
-                                dim tmp : tmp = Lampz.obj(syncClearLight.idx) 'set tmp to array in order to access it
-                                for each x in Lampz.obj(syncClearLight.idx)
-                                    x.intensityscale = 0.001 ' this can prevent init stuttering
-                                Next
-                            Else
-                                Lampz.obj(syncClearLight.idx).intensityscale = 0.001 ' this can prevent init stuttering
-                            end if
                         End If 
                     Next
                 End If
