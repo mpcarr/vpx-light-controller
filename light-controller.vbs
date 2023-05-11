@@ -618,6 +618,15 @@ Class LStateController
                             'Lampz.state(syncClearLight.idx) = 0
                             Lampz.FadeSpeedUp(syncClearLight.Idx) = 100/30
                             Lampz.FadeSpeedDown(syncClearLight.Idx) = 100/120
+                            
+                            if IsArray(Lampz.obj(syncClearLight.idx)) then
+                                dim tmp : tmp = Lampz.obj(syncClearLight.idx) 'set tmp to array in order to access it
+                                for each x in Lampz.obj(syncClearLight.idx)
+                                    x.intensityscale = 0.001 ' this can prevent init stuttering
+                                Next
+                            Else
+                                Lampz.obj(syncClearLight.idx).intensityscale = 0.001 ' this can prevent init stuttering
+                            end if
                         End If 
                     Next
                 End If
@@ -701,6 +710,10 @@ Class LStateController
 
     End Sub
 
+    Private Function HexToInt(hex)
+        HexToInt = CInt("&H" & hex)
+    End Function
+
     Private Function HasKeys(o)
         Dim Success
         Success = False
@@ -718,6 +731,16 @@ Class LStateController
         dim lsName
         
         If UBound(lcSeq.Sequence)<lcSeq.CurrentIdx Then
+            If lcSeq.Repeat = False Then
+               ' MsgBox("Self Removing, clear lights down")
+                Dim lightToReset
+                For each lightToReset in lcSeq.LightsInSeq
+                    If m_lights.Exists(lightToReset) = True Then
+                        m_assignStateForFrame lightToReset, Array(0, Null, m_lights(lightToReset).Idx)
+                    End If
+                Next
+            End If
+            
             lcSeq.CurrentIdx = 0
             seqRunner.NextItem()
         Else
@@ -840,7 +863,7 @@ End Class
 
 Class LCSeq
 	
-	Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat
+	Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq
 
     Public Property Get CurrentIdx()
         CurrentIdx=m_currentIdx
@@ -850,12 +873,32 @@ Class LCSeq
         m_currentIdx = input
     End Property
 
+    Public Property Get LightsInSeq()
+        LightsInSeq=m_lightsInSeq.Keys()
+    End Property
+
     Public Property Get Sequence()
         Sequence=m_sequence
     End Property
     
 	Public Property Let Sequence(input)
 		m_sequence = input
+        dim item, light, lightItem
+        for each item in input
+            If IsArray(item) Then
+                for each light in item
+                    lightItem = Split(light,"|")
+                    If Not m_lightsInSeq.Exists(lightItem(0)) Then
+                        m_lightsInSeq.Add lightItem(0), True
+                    End If    
+                next
+            Else
+                lightItem = Split(item,"|")
+                If Not m_lightsInSeq.Exists(lightItem(0)) Then
+                    m_lightsInSeq.Add lightItem(0), True
+                End If
+            End If
+        next
 	End Property
 
     Public Property Get Color()
@@ -905,6 +948,7 @@ Class LCSeq
         m_updateInterval = 180
         m_repeat = False
         m_Frames = 180
+        Set m_lightsInSeq = CreateObject("Scripting.Dictionary")
     End Sub
 
     Public Property Get Update(framesPassed)
@@ -991,6 +1035,8 @@ Class LCSeqRunner
     Public Sub RemoveItem(item)
         If Not IsNull(item) Then
             If m_items.Exists(item.Name) Then
+                    item.ResetInterval
+                    item.CurrentIdx = 0
                     m_items.Remove item.Name
             End If
         End If
