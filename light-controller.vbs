@@ -167,6 +167,15 @@ Class LStateController
         Next        
     End Sub
 
+    Public Sub LightState(light, state)
+        m_lightOff(light.name)
+        If state = 1 Then
+            m_lightOn(light.name)
+        ElseIF state = 2 Then
+            Blink(light)
+        End If
+    End Sub
+
     Public Sub LightOn(light)
         m_LightOn(light.name)
     End Sub
