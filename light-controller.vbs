@@ -463,16 +463,10 @@ Class LStateController
         m_tableSeqFadeDown = fadeDown
 	End Sub
 
-    'Blender Toolkit Utilities
-    Public Sub RoomBrightness(value)
-        dim v: v = Int(value * 2 + 55)
-        Dim x: For Each x in BM_Room: x.Color = RGB(v, v, v): Next
-    End Sub
-
     Public Sub UseToolkitColoredLightMaps()
         
         Dim sUpdateLightMap
-        sUpdateLightMap = "Sub UpdateLightMap(idx, lightmap, intensity, ByVal aLvl)" + vbCrLf
+        sUpdateLightMap = "Sub UpdateLightMap(idx, lightmap, intensity, ByVal aLvl)" + vbCrLf    
         sUpdateLightMap = sUpdateLightMap + "   if Lampz.UseFunc then aLvl = Lampz.FilterOut(aLvl)	'Callbacks don't get this filter automatically" + vbCrLf
         sUpdateLightMap = sUpdateLightMap + "   lightmap.Opacity = aLvl * intensity" + vbCrLf
         sUpdateLightMap = sUpdateLightMap + "   If IsArray(Lampz.obj(idx) ) Then" + vbCrLf
