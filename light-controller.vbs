@@ -183,7 +183,7 @@ Class LStateController
         m_LightOnWithColor light.name, color
     End Sub
 
-    Public Sub LightOnWithFlicker(light)
+    Public Sub FlickerOn(light)
         Dim name : name = light.name
         If m_lights.Exists(name) Then
             m_lightOn(name)
