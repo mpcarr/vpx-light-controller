@@ -132,10 +132,9 @@ Class LStateController
         Dim light
         Dim lights : lights = "light:" & vbCrLf
         For Each light in collection
-            Dim lci : Set lci = m_lights(light.name)
-            lights = lights + lci.name & ":"&vbCrLf
-            lights = lights + "   x: "& lci.x/tablewidth & vbCrLf
-            lights = lights + "   y: "& lci.y/tableheight & vbCrLf
+            lights = lights + light.name & ":"&vbCrLf
+            lights = lights + "   x: "& light.x/tablewidth & vbCrLf
+            lights = lights + "   y: "& light.y/tableheight & vbCrLf
         Next
         Dim objFileToWrite : Set objFileToWrite = CreateObject("Scripting.FileSystemObject").OpenTextFile(cGameName & "_LightShows/lights-"&name&".yaml",2,true)
 	    objFileToWrite.WriteLine(lights)
