@@ -211,6 +211,9 @@ Class LStateController
             If m_off.Exists(name) Then 
                 m_off.Remove(name)
             End If
+            If m_seqs.Exists(name & "Blink") Then
+                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
+            End If
             If m_on.Exists(name) Then 
                 Exit Sub
             End If
@@ -223,6 +226,10 @@ Class LStateController
             m_lights(name).Color = color
             If m_off.Exists(name) Then 
                 m_off.Remove(name)
+            End If
+
+            If m_seqs.Exists(name & "Blink") Then
+                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
             End If
 
             If m_on.Exists(name) Then 
