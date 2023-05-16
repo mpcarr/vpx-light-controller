@@ -554,19 +554,18 @@ Class LStateController
                         pulseIdx = pulseIdx + 1
                     End If
                     
-                    Dim pulseCount : pulseCount = m_pulse(lightKey).cnt
-                    
+                    Dim pulses : pulses = m_pulse(lightKey).pulses
+					Dim pulseCount : pulseCount = m_pulse(lightKey).Cnt
                     If pulseIdx > UBound(m_pulse(lightKey).pulses) Then
-                        If pulseCount > 0 Then
+						m_pulse.Remove lightKey    
+						If pulseCount > 0 Then
                             pulseCount = pulseCount - 1
                             pulseIdx = 0
-                            Set m_pulse(lightKey) = (new PulseState)(m_pulse(lightKey).light,m_pulse(lightKey).pulses, pulseIdx, pulseUpdateInt, pulseCount)
-                        Else
-                            Set m_pulse(lightKey) = (new PulseState)(m_pulse(lightKey).light,m_pulse(lightKey).pulses, pulseIdx, pulseUpdateInt, 0)
-                            m_pulse.Remove lightKey
+                            m_pulse.Add lightKey, (new PulseState)(m_lights(lightKey),pulses, pulseIdx, pulseUpdateInt, pulseCount)
                         End If
                     Else
-                        Set m_pulse(lightKey) = (new PulseState)(m_pulse(lightKey).light,m_pulse(lightKey).pulses, pulseIdx, pulseUpdateInt, pulseCount)
+						m_pulse.Remove lightKey
+                        m_pulse.Add lightKey, (new PulseState)(m_lights(lightKey),pulses, pulseIdx, pulseUpdateInt, pulseCount)
                     End If
                 Next
             End If
