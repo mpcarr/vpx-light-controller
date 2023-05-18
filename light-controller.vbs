@@ -878,7 +878,7 @@ Class PulseState
     Public default function init(light, pulses, idx, interval, cnt)
 		Set m_light = light
 		m_pulses = pulses
-		debug.Print(Join(Pulses))
+		'debug.Print(Join(Pulses))
 		m_idx = idx 
 		m_interval = interval
 		m_cnt = cnt
@@ -1066,7 +1066,7 @@ Class LCSeq
             'Debug.print("Step: " & m_currentIdx)
             'Debug.print("Ease Amount: "& easeAmount)
             Dim newDuration : newDuration = 100 - Lerp(20, 80, EaseIn(easeAmount) )' Apply EaseInOut to duration
-            Debug.print("Duration: "& Round(newDuration))
+            'Debug.print("Duration: "& Round(newDuration))
             'Dim newDuration : newDuration = 100- Lerp(20, 80, Spike(easeAmount) )' Apply EaseInOut to duration
             
             m_frames = newDuration
