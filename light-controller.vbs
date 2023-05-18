@@ -272,11 +272,13 @@ Class LStateController
 
     Public Sub UpdateBlinkInterval(light, interval)
         If m_lights.Exists(light.name) Then
+            light.BlinkInterval = interval
             If m_seqs.Exists(light.name & "Blink") Then
                 m_seqs.Item(light.name & "Blink").UpdateInterval = interval
             End If
         End If
     End Sub
+
 
     Public Sub Pulse(light, repeatCount)
         Dim name : name = light.name
@@ -313,6 +315,7 @@ Class LStateController
             End If
         End If
     End Sub
+
 
     Public Sub AddShot(name, light, color)
         If m_lights.Exists(light.name) Then
