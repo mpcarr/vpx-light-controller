@@ -351,7 +351,7 @@ Class LStateController
         Dim light
         For Each light in m_lights.Keys()
             m_seqRunners("lSeqRunner"&CStr(light)).RemoveAll
-            m_assignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
+            AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
         Next
     End Sub
 
@@ -364,6 +364,11 @@ Class LStateController
 
     Public Sub Blink(light)
         If m_lights.Exists(light.name) Then
+
+            If m_seqs.Exists(light.name & "Blink") Then
+                Exit Sub
+            End If
+
             If m_seqs.Exists(light.name & "Blink") Then
                 m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem m_seqs(light.name & "Blink")
             Else
@@ -442,7 +447,7 @@ Class LStateController
         If IsNull(m_seqOverride.CurrentItem) Then
             Dim light
             For Each light in m_lights.Keys()
-                m_assignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
+                AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
             Next
         End If
         m_seqOverride.AddItem lcSeq
@@ -453,7 +458,7 @@ Class LStateController
         If IsNull(m_seqOverride.CurrentItem) Then
             Dim light
             For Each light in m_lights.Keys()
-                m_assignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
+                AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
             Next
         End If
     End Sub
@@ -462,7 +467,7 @@ Class LStateController
         m_seqOverride.RemoveAll
         Dim light
 		For Each light in m_lights.Keys()
-            m_assignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
+            AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
         Next
     End Sub
 
@@ -749,7 +754,7 @@ Class LStateController
         dim lsName
         
         If UBound(lcSeq.Sequence)<lcSeq.CurrentIdx Then
-            If lcSeq.Repeat = False Then
+            'If lcSeq.Repeat = False Then
                ' MsgBox("Self Removing, clear lights down")
                 Dim lightToReset
                 For each lightToReset in lcSeq.LightsInSeq
@@ -757,7 +762,7 @@ Class LStateController
                         AssignStateForFrame lightToReset, (new FrameState)(0, Null, m_lights(lightToReset).Idx)
                     End If
                 Next
-            End If
+            'End If
             
             lcSeq.CurrentIdx = 0
             seqRunner.NextItem()
@@ -783,8 +788,11 @@ Class LStateController
                         End If
 						
                         If Ubound(lsName) = 2 Then
-							'Debug.Print(lsName(0) & ":" &lsName(2))
-                            AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
+							If lsName(2) = "FFFFFF" Then
+                                AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
+                            Else
+                                AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
+                            End If
                         Else
                             AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                         End If
@@ -800,8 +808,12 @@ Class LStateController
                     If IsNull(color) Then
                         color = ls.Color
                     End If
-                    If Ubound(lsName) = 2 Then
-                        AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), Null), ls.Idx)
+                    If Ubound(lsName) = 2 AND Not lsName(2) = "#FFFFFF" Then
+                        If lsName(2) = "FFFFFF" Then
+                            AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
+                        Else
+                            AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
+                        End If
                     Else
                         AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                     End If
@@ -1128,7 +1140,8 @@ Class LCSeqRunner
         End If
         m_currentItemIdx = m_currentItemIdx + 1
         If m_currentItemIdx > UBound(items) Then   
-            m_currentItemIdx = 0    
+            m_currentItemIdx = 0
+
         End If
     End Sub
 
