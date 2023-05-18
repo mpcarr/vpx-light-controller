@@ -808,7 +808,7 @@ Class LStateController
                     If IsNull(color) Then
                         color = ls.Color
                     End If
-                    If Ubound(lsName) = 2 AND Not lsName(2) = "#FFFFFF" Then
+                    If Ubound(lsName) = 2 Then
                         If lsName(2) = "FFFFFF" Then
                             AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                         Else
