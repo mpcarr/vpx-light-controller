@@ -369,10 +369,6 @@ Class LStateController
         If m_lights.Exists(light.name) Then
 
             If m_seqs.Exists(light.name & "Blink") Then
-                Exit Sub
-            End If
-
-            If m_seqs.Exists(light.name & "Blink") Then
                 m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem m_seqs(light.name & "Blink")
             Else
                 Dim seq : Set seq = new LCSeq
