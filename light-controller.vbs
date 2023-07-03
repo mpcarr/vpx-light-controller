@@ -644,7 +644,7 @@ Class LStateController
                             Set syncClearLight = m_lights(lk.name)
                         End If
                         If Not IsNull(syncClearLight) Then
-                            AssignStateForFrame syncClearLight.name, (new FrameState)(0, syncClearLight.Color, syncClearLight.idx) 
+                            AssignStateForFrame syncClearLight.name, (new FrameState)(0, Null, syncClearLight.idx) 
                             'Lampz.state(syncClearLight.idx) = 0
                             Lampz.FadeSpeedUp(syncClearLight.Idx) = 100/30
                             Lampz.FadeSpeedDown(syncClearLight.Idx) = 100/120
