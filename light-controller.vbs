@@ -631,7 +631,7 @@ Class LStateController
                             AssignStateForFrame syncLight.name, (new FrameState)(tmpLight.GetInPlayState*100,color, syncLight.Idx)                     
                         End If
                     Next
-		End If
+		        End If
             End If
 
             If m_vpxLightSyncClear = True Then  
@@ -750,22 +750,42 @@ Class LStateController
     Private Sub RunLightSeq(seqRunner, k)
 
         Dim lcSeq: Set lcSeq = seqRunner.CurrentItem
-        dim lsName
-        
+        dim lsName, isSeqEnd
         If UBound(lcSeq.Sequence)<lcSeq.CurrentIdx Then
-            'If lcSeq.Repeat = False Then
-               ' MsgBox("Self Removing, clear lights down")
-                Dim lightToReset
-                For each lightToReset in lcSeq.LightsInSeq
-                    If m_lights.Exists(lightToReset) = True Then
-                        AssignStateForFrame lightToReset, (new FrameState)(0, Null, m_lights(lightToReset).Idx)
+            isSeqEnd = True
+        Else
+            isSeqEnd = False
+        End If
+
+        dim lightInSeq
+        For each lightInSeq in lcSeq.LightsInSeq
+            If isSeqEnd Then
+                
+            'Needs a guard here for something, but i've forgotten. 
+            'I remember: Only reset the light if there isn't frame data for the light. 
+            'e.g. a previous seq has affected the light, we don't want to clear that here on this frame
+                If m_lights.Exists(lightInSeq) = True AND NOT m_currentFrameState.Exists(lightInSeq) Then
+                   AssignStateForFrame lightInSeq, (new FrameState)(0, Null, m_lights(lightInSeq).Idx)
+                End If
+            Else
+                '
+                If m_currentFrameState.Exists(lightInSeq) Then
+                    'already frame data for this light.
+                    'replace with the last known state from this seq
+                    If Not IsNull(lcSeq.LastLightState(lightInSeq)) Then
+						AssignStateForFrame lightInSeq, lcSeq.LastLightState(lightInSeq)
                     End If
-                Next
-            'End If
-            
+                End If
+
+            End If
+        Next
+
+        If isSeqEnd Then
             lcSeq.CurrentIdx = 0
             seqRunner.NextItem()
-        Else
+        End If
+
+        If Not IsNull(seqRunner.CurrentItem) Then
             Dim framesRemaining, seq, color
             seq = lcSeq.Sequence
 
@@ -795,6 +815,7 @@ Class LStateController
                         Else
                             AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                         End If
+						lcSeq.LastLightState(name) = m_currentFrameState(name)
                     End If
                 Next       
             Else
@@ -816,8 +837,12 @@ Class LStateController
                     Else
                         AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                     End If
+                    lcSeq.LastLightState(name) = m_currentFrameState(name)
                 End If
             End If
+
+            '
+
             framesRemaining = lcSeq.Update(m_frameTime)
             'Debug.print(framesRemaining)
             If framesRemaining < 0 Then
@@ -950,13 +975,14 @@ End Class
 
 Class LCSeq
 	
-	Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq
+	Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates
 
     Public Property Get CurrentIdx()
         CurrentIdx=m_currentIdx
     End Property
 
     Public Property Let CurrentIdx(input)
+		m_lastLightStates.RemoveAll()
         m_currentIdx = input
     End Property
 
@@ -987,6 +1013,24 @@ Class LCSeq
             End If
         next
 	End Property
+
+    Public Property Get LastLightState(light)
+		If m_lastLightStates.Exists(light) Then
+			dim c : Set c = m_lastLightStates(light)
+			Set LastLightState = c
+		Else
+			LastLightState = Null
+		End If
+    End Property
+
+    Public Property Let LastLightState(light, input)
+        If m_lastLightStates.Exists(light) Then
+            m_lastLightStates.Remove light
+        End If
+		If input.level > 0 Then
+			m_lastLightStates.Add light, input
+		End If
+    End Property
 
     Public Property Get Color()
         Color=m_color
@@ -1034,6 +1078,7 @@ Class LCSeq
         m_repeat = False
         m_Frames = 180
         Set m_lightsInSeq = CreateObject("Scripting.Dictionary")
+        Set m_lastLightStates = CreateObject("Scripting.Dictionary")
     End Sub
 
     Public Property Get Update(framesPassed)
@@ -1140,7 +1185,6 @@ Class LCSeqRunner
         m_currentItemIdx = m_currentItemIdx + 1
         If m_currentItemIdx > UBound(items) Then   
             m_currentItemIdx = 0
-
         End If
     End Sub
 
