@@ -1,5 +1,5 @@
 '***********************************************************************************************************************
-' Lights State Controller - 0.7.1
+' Lights State Controller - 0.7.2
 '  
 ' A light state controller for original vpx tables.
 '
@@ -1061,6 +1061,7 @@ Class LCSeq
 
     Public Property Let UpdateInterval(input)
         m_updateInterval = input
+        m_Frames = input
     End Property
 
     Public Property Get Repeat()
