@@ -146,15 +146,14 @@ Class LStateController
 
     Public Sub RegisterLights(mode)
 
-        Dim idx
+        Dim idx,tmp,vpxLight,lcItem
         If mode = "Lampz" Then
             
             For idx = 0 to UBound(Lampz.obj)
                 If Lampz.IsLight(idx) Then
-                    Dim lcItem : Set lcItem = new LCItem
-                    Dim vpxLight
+                    Set lcItem = new LCItem
                     If IsArray(Lampz.obj(idx)) Then
-                        Dim tmp : tmp = Lampz.obj(idx)
+                        tmp = Lampz.obj(idx)
                         Set vpxLight = tmp(0)
                     Else
                         Set vpxLight = Lampz.obj(idx)
@@ -172,10 +171,9 @@ Class LStateController
             useVpxLights = True
             For idx = 0 to UBound(Lights)
                 
-                Dim lcItem : Set lcItem = new LCItem
-                Dim vpxLight
+                Set lcItem = new LCItem
                 If IsArray(Lights(idx)) Then
-                    Dim tmp : tmp = Lights(idx)
+                    tmp = Lights(idx)
                     Set vpxLight = tmp(0)
                 Else
                     Set vpxLight = Lights(idx)
@@ -556,15 +554,15 @@ Class LStateController
     Private Function GetTmpLight(idx)
         If useVpxLights = True Then
           If IsArray(Lights(idx) ) Then	'if array
-                GetTmpLight = Lights(idx)(0)
+                Set GetTmpLight = Lights(idx)(0)
             Else
-                GetTmpLight = Lights(idx)
+                Set GetTmpLight = Lights(idx)
             End If
         Else
             If IsArray(Lampz.obj(idx) ) Then	'if array
-                GetTmpLight = Lampz.obj(idx)(0)
+                Set GetTmpLight = Lampz.obj(idx)(0)
             Else
-                GetTmpLight = Lampz.obj(idx)
+                Set GetTmpLight = Lampz.obj(idx)
             End If
         End If
         
