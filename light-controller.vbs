@@ -7,8 +7,6 @@
 '
 '***********************************************************************************************************************
 
-Dim lightCtrl : Set lightCtrl = new LStateController
-
 Class LStateController
 
     Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqOverride, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, useVpxLights
@@ -170,18 +168,19 @@ Class LStateController
         ElseIf mode = "VPX" Then
             useVpxLights = True
             For idx = 0 to UBound(Lights)
-                
+                vpxLight = Null
                 Set lcItem = new LCItem
                 If IsArray(Lights(idx)) Then
                     tmp = Lights(idx)
                     Set vpxLight = tmp(0)
-                Else
+                ElseIf IsObject(Lights(idx)) Then
                     Set vpxLight = Lights(idx)
-                    
                 End If
-                lcItem.Init lamidxpzIdx, vpxLight.BlinkInterval, Array(vpxLight.color, vpxLight.colorFull), vpxLight.name, vpxLight.x, vpxLight.y
-                m_lights.Add vpxLight.Name, lcItem
-                m_seqRunners.Add "lSeqRunner" & CStr(vpxLight.name), new LCSeqRunner
+                If Not IsNull(vpxLight) Then
+                    lcItem.Init idx, vpxLight.BlinkInterval, Array(vpxLight.color, vpxLight.colorFull), vpxLight.name, vpxLight.x, vpxLight.y
+                    m_lights.Add vpxLight.Name, lcItem
+                    m_seqRunners.Add "lSeqRunner" & CStr(vpxLight.name), new LCSeqRunner
+                End If
             Next  
         End If
     End Sub
@@ -700,6 +699,7 @@ Class LStateController
                 'Debug.print("Changing light idx: " & CStr(m_currentFrameState(frameStateKey).idx) & " -> " & CStr(m_currentFrameState(frameStateKey).level) & ". FrameTime: " & m_frametime)
                 
                 Dim newColor : newColor = m_currentFrameState(frameStateKey).colors
+                Dim bUpdate
 
                 If Not IsNull(newColor) Then
                     'Debug.Print("Updating color")
@@ -707,7 +707,7 @@ Class LStateController
                     
                     Set tmpLight = GetTmpLight(idx)
 
-					Dim c, cf, bUpdate
+					Dim c, cf
 					c = newColor(0)
 					cf= newColor(1)
 
@@ -722,58 +722,59 @@ Class LStateController
 							bUpdate = True
 						End If
 					End If
-    
-                    If useVpxLights = False Then
-                        If bUpdate Then
-                            'Update lamp color
-                            If IsArray(Lampz.obj(idx)) Then
-                                for each x in Lampz.obj(idx)
-                                    If Not IsNull(c) Then
-                                        x.color = c
-                                    End If
-                                    If Not IsNull(cf) Then
-                                        x.colorFull = cf
-                                    End If
-                                Next
-                            Else
+            	End If
+
+                If useVpxLights = False Then
+                    If bUpdate Then
+                        'Update lamp color
+                        If IsArray(Lampz.obj(idx)) Then
+                            for each x in Lampz.obj(idx)
                                 If Not IsNull(c) Then
-                                    Lampz.obj(idx).color = c
+                                    x.color = c
                                 End If
                                 If Not IsNull(cf) Then
-                                    Lampz.obj(idx).colorFull = cf
+                                    x.colorFull = cf
                                 End If
-                            End If
-                            If Lampz.UseCallBack(idx) then Proc Lampz.name & idx,Lampz.Lvl(idx)*Lampz.Modulate(idx)	'Force Callbacks Proc
-                        End If
-                        Lampz.state(idx) = CInt(m_currentFrameState(frameStateKey).level) 'Lampz will handle redundant updates
-                    Else
-                        If IsArray(Lights(idx)) Then
-                            For Each x in Lights(idx)
-                                If bUpdate Then 
-                                    If Not IsNull(c) Then
-                                        x.color = c
-                                    End If
-                                    If Not IsNull(cf) Then
-                                        x.colorFull = cf
-                                    End If
-                                End If
-                                x.State = m_currentFrameState(frameStateKey).level/100
                             Next
                         Else
+                            If Not IsNull(c) Then
+                                Lampz.obj(idx).color = c
+                            End If
+                            If Not IsNull(cf) Then
+                                Lampz.obj(idx).colorFull = cf
+                            End If
+                        End If
+                        If Lampz.UseCallBack(idx) then Proc Lampz.name & idx,Lampz.Lvl(idx)*Lampz.Modulate(idx)	'Force Callbacks Proc
+                    End If
+                    Lampz.state(idx) = CInt(m_currentFrameState(frameStateKey).level) 'Lampz will handle redundant updates
+                Else
+                    If IsArray(Lights(idx)) Then
+                        For Each x in Lights(idx)
                             If bUpdate Then 
                                 If Not IsNull(c) Then
-                                    Lights(idx).color = c
+                                    x.color = c
                                 End If
                                 If Not IsNull(cf) Then
-                                    Lights(idx).colorFull = cf
+                                    x.colorFull = cf
                                 End If
                             End If
-                            Lights(idx).State = m_currentFrameState(frameStateKey).level/100
+                            x.State = m_currentFrameState(frameStateKey).level/100
+                        Next
+                    Else
+                        If bUpdate Then 
+                            If Not IsNull(c) Then
+                                Lights(idx).color = c
+                            End If
+                            If Not IsNull(cf) Then
+                                Lights(idx).colorFull = cf
+                            End If
                         End If
+                        Lights(idx).State = m_currentFrameState(frameStateKey).level/100
                     End If
-                    
-            	End If
-                
+                End If
+
+
+           
                 
 				 
             Next
