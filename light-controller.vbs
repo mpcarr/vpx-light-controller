@@ -1264,7 +1264,7 @@ Class LCSeq
 
     Public Property Let UpdateInterval(input)
         m_updateInterval = input
-        m_Frames = input
+        'm_Frames = input
     End Property
 
     Public Property Get Repeat()
