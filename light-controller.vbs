@@ -1,5 +1,5 @@
 '***********************************************************************************************************************
-' Lights State Controller - 0.8.1
+' Lights State Controller - 0.8.2
 '  
 ' A light state controller for original vpx tables.
 '
@@ -421,6 +421,7 @@ Class LStateController
         If m_lights.Exists(light.name) Then
 
             If m_seqs.Exists(light.name & "Blink") Then
+                m_seqs(light.name & "Blink").ResetInterval
                 m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem m_seqs(light.name & "Blink")
             Else
                 Dim seq : Set seq = new LCSeq
