@@ -435,7 +435,7 @@ Class LStateController
 
             If m_seqs.Exists(light.name & "Blink") Then
                 m_seqs(light.name & "Blink").ResetInterval
-                m_seqs(light.name & "Blink").CurrentIdx
+                m_seqs(light.name & "Blink").CurrentIdx = 0 
                 m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem m_seqs(light.name & "Blink")
             Else
                 Dim seq : Set seq = new LCSeq
