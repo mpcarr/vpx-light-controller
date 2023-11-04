@@ -264,22 +264,6 @@ Class LStateController
         redim preserve a(count-1) : ColtoArray = a
     End Function
 
-	Function GenerateSawtoothWave()
-		Dim waveArray(255) ' An array to store the wave values
-		Dim amplitude, stepSize, i
-		amplitude = 255 ' Set the maximum amplitude (8 bits)
-		stepSize = amplitude / 256 ' Calculate the step size
-
-		' Generate the sawtooth wave
-		For i = 0 To 255
-			waveArray(i) = amplitude
-			amplitude = amplitude - stepSize
-		Next
-
-		' Return the wave array
-		GenerateSawtoothWave = waveArray
-	End Function
-
 	Function IncrementUInt8(x, increment)
 	  If x + increment > 255 Then
 		IncrementUInt8 = x + increment - 256
@@ -1503,32 +1487,8 @@ Class LCSeq
     End Sub
 
     Public Sub ResetInterval()
-
         m_Frames = m_updateInterval
         Exit Sub
-
-        If Not IsNull(m_sequence) And UBound(m_sequence) > 1 Then
-
-        'For i = 0 To totalSteps - 1
-        '    currentStep = i
-        '    duration = 20 ' Base duration of 20ms
-            'Debug.print("TotalSteps: " & UBound(m_sequence)-1)
-            Dim easeAmount : easeAmount = Round(m_currentIdx / UBound(m_sequence), 2) ' Normalize current step
-            if easeAmount < 0 then
-                easeAmount = 0
-            elseif easeAmount > 1 then
-                easeAmount = 1
-            end if
-            'Debug.print("Step: " & m_currentIdx)
-            'Debug.print("Ease Amount: "& easeAmount)
-            Dim newDuration : newDuration = 100 - Lerp(20, 80, EaseIn(easeAmount) )' Apply EaseInOut to duration
-            'Debug.print("Duration: "& Round(newDuration))
-            'Dim newDuration : newDuration = 100- Lerp(20, 80, Spike(easeAmount) )' Apply EaseInOut to duration
-            
-            m_frames = newDuration
-        Else
-            m_Frames = m_updateInterval
-        End If
     End Sub
 
 End Class
@@ -1615,32 +1575,3 @@ Class LCSeqRunner
     End Function
 
 End Class
-
-
-Function Lerp(startValue, endValue, amount)
-    Lerp = startValue + (endValue - startValue) * amount
-End Function
-
-Function Flip(x)
-    Flip = 1 - x
-End Function
-
-Function EaseIn(amount)
-    EaseIn = amount * amount
-End Function
-
-Function EaseOut(amount)
-    EaseOut = Flip(Sqr(Flip(amount)))
-End Function
-
-Function EaseInOut(amount)
-    EaseInOut = Lerp(EaseIn(amount), EaseOut(amount), amount)
-End Function
-
-Function Spike(t)
-    If t <= 0.5 Then
-        Spike = EaseIn(t / 0.5)
-    Else
-        Spike = EaseIn(Flip(t)/0.5)
-    End If
-End Function
