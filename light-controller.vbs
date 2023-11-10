@@ -230,16 +230,17 @@ Class LStateController
 
 					Dim r : r = Round(vpxLight.y/20)
 					Dim c : c = Round(vpxLight.x/20)
-					If Not leds(r,c) = "" Then
-						MsgBox("Move your lights punk: " & idx)
-					End If
-					leds(r,c) = ledIdx
-					lightsToLeds(idx) = ledIdx
-					ledIdx = ledIdx + 1
-
+                    If r < rowCount And c < colCount And r >= 0 And c >= 0 Then
+                        If Not leds(r,c) = "" Then
+                            MsgBox("Move your lights punk: " & idx)
+                        End If
+                        leds(r,c) = ledIdx
+                        lightsToLeds(idx) = ledIdx
+                        ledIdx = ledIdx + 1
+                    End If
                     Dim e, lmStr: lmStr = "lmArr = Array("    
                     For Each e in GetElements()
-                        If InStr(e.Name, "_" & vpxLight.Name & "_") Or InStr(e.Name, "_" & vpxLight.UserValue & "_") Then
+                        If InStr(e.Name, "_" & vpxLight.Name) Or InStr(e.Name, "_" & vpxLight.Name & "_") Or InStr(e.Name, "_" & vpxLight.UserValue & "_") Then
                             Debug.Print(e.Name)
                             lmStr = lmStr & e.Name & ","
                         End If
@@ -297,6 +298,28 @@ Class LStateController
 
     Public Sub LightOnWithColor(light, color)
         m_LightOnWithColor light.name, color
+    End Sub
+
+    Public Sub FadeLightToColor(light, color, fadeSpeed)
+        If m_lights.Exists(light.name) Then
+            dim lightColor, steps
+            steps = Round(fadeSpeed/10)
+            If steps < 10 Then
+                steps = 10
+            End If
+            lightColor = m_lights(light.name).Color
+            Dim seq : Set seq = new LCSeq
+            seq.Name = light.name & "Fade"
+            seq.Sequence = FadeRGB(light.name, lightColor(0), color, steps)
+            seq.Color = Null
+            seq.UpdateInterval = 20
+            seq.Repeat = False
+            m_lights(light.name).Color = color
+            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem seq
+            If color = RGB(0,0,0) Then
+                m_lightOff(light.name)
+            End If
+        End If
     End Sub
 
     Public Sub FlickerOn(light)
@@ -728,6 +751,21 @@ Class LStateController
         Next
     End Sub
 
+	Public Function GetLightIdx(light)
+		dim syncLight : syncLight = Null
+		If m_lights.Exists(light.name) Then
+			'found a light
+			Set syncLight = m_lights(light.name)
+		End If
+		If Not IsNull(syncLight) Then
+			'Found a light to sync.
+			GetLightIdx = lightsToLeds(syncLight.Idx)
+		Else
+			GetLightIdx = Null
+		End If
+		
+	End Function
+
     Private Function m_buildBlinkSeq(light)
         Dim i, buff : buff = Array()
         ReDim buff(Len(light.BlinkPattern)-1)
@@ -1038,10 +1076,6 @@ Class LStateController
                     End If
                 End If
 
-
-           
-                
-				 
             Next
         End If
         m_currentFrameState.RemoveAll
@@ -1051,6 +1085,45 @@ Class LStateController
 
     Private Function HexToInt(hex)
         HexToInt = CInt("&H" & hex)
+    End Function
+
+    Function RGBToHex(r, g, b)
+        RGBToHex = Right("0" & Hex(r), 2) & _
+               Right("0" & Hex(g), 2) & _
+               Right("0" & Hex(b), 2)
+    End Function
+
+    Function FadeRGB(light, color1, color2, steps)
+
+    
+        Dim r1, g1, b1, r2, g2, b2
+        Dim i
+        Dim r, g, b
+        color1 = clng(color1)
+        color2 = clng(color2)
+        ' Extract RGB values from the color integers
+        r1 = color1 Mod 256
+        g1 = (color1 \ 256) Mod 256
+        b1 = (color1 \ (256 * 256)) Mod 256
+
+        r2 = color2 Mod 256
+        g2 = (color2 \ 256) Mod 256
+        b2 = (color2 \ (256 * 256)) Mod 256
+
+        ' Resize the output array
+        ReDim outputArray(steps - 1)
+
+        ' Generate the fade
+        For i = 0 To steps - 1
+            ' Calculate RGB values for this step
+            r = r1 + (r2 - r1) * i / (steps - 1)
+            g = g1 + (g2 - g1) * i / (steps - 1)
+            b = b1 + (b2 - b1) * i / (steps - 1)
+
+            ' Convert RGB to hex and add to output
+            outputArray(i) = light & "|100|" & RGBToHex(CInt(r), CInt(g), CInt(b))
+        Next
+        FadeRGB = outputArray
     End Function
 
 	Public Function GetGradientColors(startColor, endColor)
@@ -1193,7 +1266,7 @@ Class LStateController
                         End If
 						
                         If Ubound(lsName) = 2 Then
-							If lsName(2) = "FFFFFF" Then
+							If lsName(2) = "" Then
                                 AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                             Else
                                 AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
@@ -1215,7 +1288,7 @@ Class LStateController
                         color = ls.Color
                     End If
                     If Ubound(lsName) = 2 Then
-                        If lsName(2) = "FFFFFF" Then
+                        If lsName(2) = "" Then
                             AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                         Else
                             AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
@@ -1342,6 +1415,14 @@ Class LCItem
 
         Public Property Get Y()
             Y=m_y
+        End Property
+
+        Public Property Get Row()
+            Row=Round(m_x/20)
+        End Property
+
+        Public Property Get Col()
+            Col=Round(m_y/20)
         End Property
 
         Public Sub Init(idx, intervalMs, color, name, x, y)
