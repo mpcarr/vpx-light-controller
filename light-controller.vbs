@@ -12,7 +12,7 @@
 
 Class LStateController
 
-    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, useVpxLights, m_lightmaps, m_seqOverrideRunners
+    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, useVpxLights, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights
 
     Private Sub Class_Initialize()
         Set m_lights = CreateObject("Scripting.Dictionary")
@@ -34,6 +34,8 @@ Class LStateController
         m_tableSeqFadeUp = Null
         m_tableSeqFadeDown = Null
         useVpxLights = False
+		m_pauseMainLights = False
+		Set m_pausedLights = CreateObject("Scripting.Dictionary")
         Set m_lightmaps = CreateObject("Scripting.Dictionary")
     End Sub
 
@@ -813,6 +815,103 @@ Class LStateController
 
     End Sub
 
+	Public Sub PauseMainLights
+		If m_pauseMainLights = False Then
+			m_pauseMainLights = True
+			m_pausedLights.RemoveAll
+			Dim pon
+			Set pon = CreateObject("Scripting.Dictionary")
+			Dim poff : Set poff = CreateObject("Scripting.Dictionary")
+			Dim ppulse : Set ppulse = CreateObject("Scripting.Dictionary")
+			Dim pseqs : Set pseqs = CreateObject("Scripting.Dictionary")
+			Dim lightProps : Set lightProps = CreateObject("Scripting.Dictionary")
+			'Add State in
+			Dim light, item
+			For Each item in m_on.Keys()
+				pon.add item, m_on(Item)
+			Next
+			For Each item in m_off.Keys()
+				poff.add item, m_off(Item)
+			Next
+			For Each item in m_pulse.Keys()
+				ppulse.add item, m_pulse(Item)
+			Next
+			For Each item in m_seqRunners.Keys()
+				dim tmpSeq : Set tmpSeq = new LCSeqRunner
+				dim seqItem
+				For Each seqItem in m_seqRunners(Item).Items.Items()
+					tmpSeq.AddItem seqItem
+				Next
+				tmpSeq.CurrentItemIdx = m_seqRunners(Item).CurrentItemIdx
+				pseqs.add item, tmpSeq
+			Next
+			
+			Dim savedProps(1,3)
+			
+			For Each light in m_lights.Keys()
+					
+				savedProps(0,0) = m_lights(light).Color
+				savedProps(0,1) = m_lights(light).Level
+				If m_seqs.Exists(light & "Blink") Then
+					savedProps(0,2) = m_seqs.Item(light & "Blink").UpdateInterval
+				Else
+					savedProps(0,2) = Empty
+				End If
+				lightProps.add light, savedProps
+			Next
+			m_pausedLights.Add "on", pon
+			m_pausedLights.Add "off", poff
+			m_pausedLights.Add "pulse", ppulse
+			m_pausedLights.Add "runners", pseqs
+			m_pausedLights.Add "lightProps", lightProps
+			m_on.RemoveAll
+			m_off.RemoveAll
+			m_pulse.RemoveAll
+			For Each item in m_seqRunners.Items()
+				item.removeAll
+			Next			
+		End If
+	End Sub
+
+	Public Sub ResumeMainLights
+		If m_pauseMainLights = True Then
+			m_pauseMainLights = False
+			m_on.RemoveAll
+			m_off.RemoveAll
+			m_pulse.RemoveAll
+			Dim light, item
+			For Each light in m_lights.Keys()
+				AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
+			Next
+			For Each item in m_seqRunners.Items()
+				item.removeAll
+			Next
+			'Add State in
+			For Each item in m_pausedLights("on").Keys()
+				m_on.add item, m_pausedLights("on")(Item)
+			Next
+			For Each item in m_pausedLights("off").Keys()
+				m_off.add item, m_pausedLights("off")(Item)
+			Next			
+			For Each item in m_pausedLights("pulse").Keys()
+				m_pulse.add item, m_pausedLights("pulse")(Item)
+			Next
+			For Each item in m_pausedLights("runners").Keys()
+				
+				
+				Set m_seqRunners(Item) = m_pausedLights("runners")(Item)
+			Next
+			For Each item in m_pausedLights("lightProps").Keys()
+				LightColor Eval(Item), m_pausedLights("lightProps")(Item)(0,0)
+				LightLevel Eval(Item), m_pausedLights("lightProps")(Item)(0,1)
+				If Not IsEmpty(m_pausedLights("lightProps")(Item)(0,2)) Then
+					UpdateBlinkInterval Eval(Item), m_pausedLights("lightProps")(Item)(0,2)
+				End If
+			Next			
+			m_pausedLights.RemoveAll
+		End If
+	End Sub
+
     Public Sub Update()
 
 		m_frameTime = gametime - m_initFrameTime : m_initFrameTime = gametime
@@ -833,13 +932,9 @@ Class LStateController
         Next
         If hasOverride = False Then
         
-
-
-
-
             If HasKeys(m_on) Then   
                 For Each lightKey in m_on.Keys()
-                    Set lcItem = m_on(lightKey)
+					Set lcItem = m_on(lightKey)
                     AssignStateForFrame lightKey, (new FrameState)(lcItem.level, m_on(lightKey).Color, m_on(lightKey).Idx)
                 Next
             End If
@@ -910,7 +1005,6 @@ Class LStateController
                         If Not IsNull(syncLight) Then
                             'Found a light to sync.
 							
-
 							Dim lightState
 
                             If IsNull(m_tableSeqColor) Then
@@ -1189,14 +1283,11 @@ Class LStateController
 	End Function
 
     Private Function HasKeys(o)
-        Dim Success
-        Success = False
-
-        On Error Resume Next
-            o.Keys()
-            Success = (Err.Number = 0)
-        On Error Goto 0
-        HasKeys = Success
+        If Ubound(o.Keys())>-1 Then
+			HasKeys = True
+		Else
+			HasKeys = False
+		End If
     End Function
 
     Private Sub RunLightSeq(seqRunner)
@@ -1590,6 +1681,14 @@ Class LCSeqRunner
 		Set Items = m_items
 	End Property
 
+	Public Property Get CurrentItemIdx()
+		CurrentItemIdx = m_currentItemIdx
+	End Property
+
+	Public Property Let CurrentItemIdx(input)
+		m_currentItemIdx = input
+	End Property
+
     Public Property Get CurrentItem()
         Dim items: items = m_items.Items()
         If m_currentItemIdx > UBound(items) Then
@@ -1656,3 +1755,4 @@ Class LCSeqRunner
     End Function
 
 End Class
+
