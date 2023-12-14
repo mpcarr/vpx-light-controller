@@ -1,16 +1,36 @@
+
 # VPX Light Controller
 
-A class to help vpx originals use nFozzy Lampz by managing light states and sequences. Supports managing multiple light states per light, RGB lights, Syncing with VPX light sequences, custom key frame light sequences, import / export of light sequences to show creator and several utility functions for interacting with lights.
+A class to help vpx original table authors manage light states and custom sequences. Supports managing multiple light states per light, RGB lights, Syncing with VPX light sequences, custom key frame light sequences, import / export of light sequences to show creator and several utility functions for interacting with lights.
 
 # Installing
 
 - Download the latest release from github releases and copy the vbs code from **lightController.vbs** into your vpx table script.
 
-- Copy the vbs code from **lampz.vbs** into your table script.
+# Registering Lights <a id="registerLights1"></a>
 
-# Features
+#### vpmMapLights - what is it?
+
+-vpmMapLights is a function which is available from the core.vbs script that comes with VPX. It allows you to setup your lights by specifying a light index in the lights timer interval property. This means you could have multiple light objects assigned to the same index to generate a greater light influence, or you might want to tie multiple lights together so they flash at the same time. This technique is used in vpx rom based tables to map the lights to the rom index. We use the same setup here for consistency.
+
+ - The first thing you need to do is assign a number to each light or
+   light groups and put that in the light objects timer interval
+
+![light interval](./images/light-interval.png)
+
+ - Next you need to add all of your lights into a vpx collection called ***aLights***
+ 
+![light interval](./images/lights-alights.png)
+
+ - Finally in your table init sub, you can call the light controller's register lights function
+```
+lightCtrl.RegisterLights
+```
+This will do a few things. First, it will vpmMapLights to setup your light indexes. Next it will build a grid containing all of your light positions, this is used if you want to export your lights and also for some custom color fading routines. Second, it will try to find any lightmaps that might be assoiciated with your lights. (these are primitives you can setup that need to track the opacity and color of your lights). Finally it will create a ***Sequence Runner*** for each light, this allows for each light to have multiple states, e.g. a mode shot and a multiball jackpot shot. More on Sequence Runners below.
+
+
+# Light Controller Features
   
-  - Register Lights
   - VPX LightMapper Utils
     - Room Brightness
     - Use Toolkit Colored Lightmaps
@@ -38,31 +58,8 @@ A class to help vpx originals use nFozzy Lampz by managing light states and sequ
       - Importing Light Shows
 
 
-# Register Lights <a id="registerLights1"></a>
 
-You need to register the lights you want to control with the class. To do this, add the below code after you have assigned all your lights with Lampz. The best place to do this is at the end of the InitLampNF sub.
 
-```
-lightCtrl.RegisterLights
-```
-
-# VPX LightMapper Utils  <a id="lightmapperUtils"></a>
-
-## Room Brightness  <a id="roombrightness"></a>
-
-To change the Bake Map room brightness use **RoomBrightness** with a value 0-100
-
-```
-lightCtrl.RoomBrightness 75
-```
-
-## Use Toolkit Colored Lightmaps  <a id="usecoloredLightmaps"></a>
-
-To use color the white baked light maps or to use RGB lights without needing the patch the toolkit helper script on each export, you can use **UseToolkitColoredLightMaps**. This will rewrite the UpdateLightMap function to sync the lightmap with the light color
-
-```
-lightCtrl.UseToolkitColoredLightMaps
-```
 
 # Managing Lights <a id="managingLights"></a>
 
