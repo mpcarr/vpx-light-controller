@@ -31,9 +31,6 @@ This will do a few things. First, it will vpmMapLights to setup your light index
 
 # Light Controller Features
   
-  - VPX LightMapper Utils
-    - Room Brightness
-    - Use Toolkit Colored Lightmaps
   - Managing Lights
     - Light On/Off
     - Light Blink
@@ -57,39 +54,26 @@ This will do a few things. First, it will vpmMapLights to setup your light index
       - Exporting Lights
       - Importing Light Shows
 
-
-
-
-
 # Managing Lights <a id="managingLights"></a>
 
 To control your lights you can call the following functions on the light controller object. All these require you to pass the vpx light as a parameter. E.g. The below examples assume you have a light in vpx called L01
 
-## Light On/Off <a id="lightOn"></a>
+## Light On/Off/Blink <a id="lightOn"></a>
 
-To turn a light on you use: **On**.
-
+To turn a light on you use: **On** and **Off**.
 ```
-lightCtrl.LightOn L01
+lightCtrl.On L01
+lightCtrl.Off L01
+lightCtrl.Blink L01
 ```
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lighton.gif?raw=true)
-
-
-
-## Light Blink <a id="lightBlink"></a>
-
-To start a light blinking you use: **Blink**. This will use the blink pattern of the vpx light
-
-```
-lightCtrl.Blink L01
-```
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightblink.gif?raw=true)
 
 ## Light Color <a id="lightColor"></a>
 
-VPX lights have color and fullColor properties. To change the light color use: **Color**
+VPX lights have color and fullColor properties. To change the light color use: **LightColor**
 
 ```
 lightCtrl.LightColor L01, RGB(255,0,0) 'Sets the color property to Red
@@ -105,7 +89,7 @@ lightCtrl.LightColor L01, Array(Null, RGB(0,0,255)) 'Sets the fullColor to Blue
 
 ## Light Level <a id="lightLevel"></a>
 
-All of the lights registerd with the controller will be set to modulate brightness between 0-100. Lampz will fade the light upto this level. To change the level use: **LightLevel**
+All of the lights registerd with the controller will be set to modulate brightness between 0-100. To change the level use: **LightLevel**
 
 ```
 lightCtrl.LightLevel L01, 50 'Set the lights maximum brightness to 50%
@@ -122,10 +106,10 @@ To help control common light events there are some utility functions available:
 
 ### Light On With Color <a id="lightOnWithColor"></a>
 
-Turns a light shilst also setting the color
+Turns a light whilst also setting the color
 
 ```
-lightCtrl.LightOnWithColor L01, RGB(255,0,0)
+lightCtrl.OnWithColor L01, RGB(255,0,0)
 ```
 
 ### Light On With Flicker <a id="lightFlicker"></a>
@@ -133,7 +117,7 @@ lightCtrl.LightOnWithColor L01, RGB(255,0,0)
 Turns a light on with a short flickering sequence
 
 ```
-lightCtrl.LightOnWithFlicker L01
+lightCtrl.OnWithFlicker L01
 ```
 
 ![Alt Text](https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightflicker.gif?raw=true)
@@ -160,8 +144,16 @@ Pulses a light with a custom pulse sequence. The state of the light does not cha
 The second parameter is the pulse sequence to use. Each element in the array is the brightness of the light for that frame. Each frame is 20ms so the 5 element seq below would last 100ms.
 
 ```
-lightCtrl.PulseWithProfile L01, Array(10,50,100,50,0) 0
+lightCtrl.PulseWithProfile L01, Array(10,50,100,50,0), 0
 ``` 
+
+### Light Pulse With Color<a id="pulseWithColor"></a>
+
+Pulses a light with a color. The state of the light does not change. E.g. after the pulse has finished, if the light was previously on, it will be on again and the color will reset.
+
+```
+lightCtrl.PulseWithColor L01, RGB(255,0,0), 0
+```
 
 # Managing Shots <a id="managingShots"></a>
 
