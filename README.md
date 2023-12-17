@@ -22,11 +22,20 @@ A class to help vpx original table authors manage light states and custom sequen
  
 ![light interval](./images/lights-alights.png)
 
- - Finally in your table init sub, you can call the light controller's register lights function
+ - At the top of your table script, make sure these variables are defined:
+ ```
+Const cGameName = "REPLACE WITH TABLE NAME"
+Dim tablewidth: tablewidth = Table1.width
+Dim tableheight: tableheight = Table1.height
+```
+
+ - In your table init sub, you can call the light controller's register lights function
 ```
 lightCtrl.RegisterLights
 ```
-This will do a few things. First, it will vpmMapLights to setup your light indexes. Next it will build a grid containing all of your light positions, this is used if you want to export your lights and also for some custom color fading routines. Second, it will try to find any lightmaps that might be assoiciated with your lights. (these are primitives you can setup that need to track the opacity and color of your lights). Finally it will create a ***Sequence Runner*** for each light, this allows for each light to have multiple states, e.g. a mode shot and a multiball jackpot shot. More on Sequence Runners below.
+This will do a few things. First, it will call vpmMapLights to setup your light indexes. Next it will build a grid containing all of your light positions, this is used if you want to export your lights and also for some custom color fading routines. Second, it will try to find any lightmaps that might be assoiciated with your lights. (these are primitives you can setup that need to track the opacity and color of your lights). Finally it will create a ***Sequence Runner*** for each light, this allows for each light to have multiple states, e.g. a mode shot and a multiball jackpot shot. More on Sequence Runners below.
+
+ - Finally you need to call ```lightCtrl.Update()``` inside a timer. You can reuse an existing timer or setup a new one. A 16ms timer works well
 
 
 # Light Controller Features
@@ -60,10 +69,10 @@ To control your lights you can call the following functions on the light control
 
 ## Light On/Off/Blink <a id="lightOn"></a>
 
-To turn a light on you use: **On** and **Off**.
+To turn a light on you use: **LightOn** and **LightOff**. To  set a light on a repeating Blink, you can use **Blink**
 ```
-lightCtrl.On L01
-lightCtrl.Off L01
+lightCtrl.LightOn L01
+lightCtrl.LightOff L01
 lightCtrl.Blink L01
 ```
 
@@ -111,6 +120,11 @@ Turns a light whilst also setting the color
 ```
 lightCtrl.OnWithColor L01, RGB(255,0,0)
 ```
+## Fade Light To Color
+
+Changes the color of a light to a new color, with a fading effect over a specified duration. 
+
+```lightCtrl.FadeLightToColor L01, RGB(255,0,0), 180```
 
 ### Light On With Flicker <a id="lightFlicker"></a>
 
@@ -203,15 +217,7 @@ lightCtrl.IsShotLit "Name", L01
 
 The first parameter is the name of the shot
 The second parameter is the vpx light object
-
-# Sync With VPX Lights <a id="syncWithVPXLights"></a>
-
-A simple way to use Lampz in your table without any complex seqeuences is to sync your control lights via the GetInPlayState property. You can use the light controller todo this for you by calling **SyncWithVpxLights**. Once enabled, the controller will update Lampz with your control lights.
-
-```
-lightCtrl.SyncWithVpxLights aLights 'alights is the collection you want to sync with. e.g. All Lights. You can create a smaller set of lights to sync if you wish.
-```
-
+	
 # Light Sequences <a id="lightSequences"></a>
 
 ## VPX Sequences <a id="vpxSequences"></a>
@@ -222,7 +228,7 @@ In the example below you start the vpx sequence **SeqCircleOutOn**. Then call th
 
 ```
 SomeVPXLightSeq.Play SeqCircleOutOn,50,100
-lightCtrl.SyncWithVpxLights VpxCollection
+lightCtrl.SyncWithVpxLights SomeVPXLightSeq
 
 'Stop syncing with vpx lights once the sequence is complete
 Sub SomeVPXLightSeq_PlayDone()
@@ -232,7 +238,7 @@ End Sub
 
 By default this will use the current color of the light. If you want to override the color of all the lights during the sequence you can use **SetVpxSyncLightColor**
 
-```
+````
 SomeVPXLightSeq.Play SeqCircleOutOn,50,100
 lightCtrl.SyncWithVpxLights VpxCollection
 lightCtrl.SetVpxSyncLightColor RGB(255,0,0)
