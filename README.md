@@ -313,11 +313,15 @@ To create a simple start and end palette you use:
 Dim palette
 palette = lightCtrl.CreateColorPalette("FF0000", "0000FF")
 ```
+![light interval](./images/light-interval.png)
+
 The colors are defined with a hex value (above, red -> blue).
 
 To create a palette with stops you can use:
 
 ```lightCtrl.CreateColorPaletteWithStops("FF0000", "0000FF", Array(127), Array("00FF00"))```
+
+![light interval](./images/light-interval.png)
 
 Here we need to pass in the start and end colors with an array of stop posistions and an array of stop colors for those positions. Note the palette is 255 colors, so the above creates a green stop at position 127 (50%).
 
