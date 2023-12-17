@@ -313,7 +313,7 @@ To create a simple start and end palette you use:
 Dim palette
 palette = lightCtrl.CreateColorPalette("FF0000", "0000FF")
 ```
-![light interval](./images/light-interval.png)
+![light interval](./images/pal-redblue.png)
 
 The colors are defined with a hex value (above, red -> blue).
 
@@ -321,7 +321,7 @@ To create a palette with stops you can use:
 
 ```lightCtrl.CreateColorPaletteWithStops("FF0000", "0000FF", Array(127), Array("00FF00"))```
 
-![light interval](./images/light-interval.png)
+![light interval](./images/pal-redgreenblue.png)
 
 Here we need to pass in the start and end colors with an array of stop posistions and an array of stop colors for those positions. Note the palette is 255 colors, so the above creates a green stop at position 127 (50%).
 
@@ -330,22 +330,30 @@ Here we need to pass in the start and end colors with an array of stop posistion
 You can use palettes with either any custom sequence or when syncing lights with vpx sequences.
 
  - Palette with VPX Seq
-	 - ```lightCtrl.SetVpxSyncLightsPalette paletteWithStops, "north", 0```
-			 - param1: the palette
-			 - param2: direction
-			 - param3: speed
+	 - ```lightCtrl.SetVpxSyncLightsPalette paletteWithStops, "LeftToRight", 0```
+		
+		 - param1: the palette
+		 - param2: direction
+		- param3: speed
 	 - The direction param determines how the palette is applied to the lights. The options available are:
-			 - TopToBottom
-			 - BottomToTop
-			 - LeftToRight
-			 - RightToLeft
-			 - RadialOut
-			 - RadialIn
-			 - Clockwise
-			 - AntiClockwise
+		 - TopToBottom
+	   	- BottomToTop
+   		 - LeftToRight
+   		 - RightToLeft
+   		 - RadialOut
+   		 - RadialIn
+   		 - Clockwise
+   		 - AntiClockwise
+
 	 - The speed param allows you to shift the colors in the palette over time. 
-			 - A value of 0 or Null wont shift the colors at all during the sequence
-			 - Any other value e.g. 120 will shift the colors by 1 every 120ms.
+
+		 - A value of 0 or Null wont shift the colors at all during the sequence
+		- Any other value e.g. 120 will shift the colors by 1 every 120ms.
+		
+ - Palette with Sequence Runner
+	- ```lSeqTest.Palette = Array(paletteWithStops, "LeftToRight", 0)```
+		 - Same params as above however this time they are assigned as an array
+		   to the palette property of the sequence runner
 
 # Show Creator <a id="showCreator"></a>
 
