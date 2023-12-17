@@ -301,6 +301,48 @@ As the above example is set to repeat, you can stop it by using **RemoveLightSeq
 lightCtrl.RemoveLightSeq "_RunnerName_", lSeqTest
 ```
 
+## Color Palettes
+
+When runnning light sequences it's nice to be able to change the color of the sequence. In addition to the color and sync color properties, the Light Controller supports palettes of color (gradients). 
+
+To create a palette there are two options. You can create a palette between a start and end color, this will be a gradient from start to finish. Or you can create a palette with multiple color stops. 
+
+To create a simple start and end palette you use:
+
+```'
+Dim palette
+palette = lightCtrl.CreateColorPalette("FF0000", "0000FF")
+```
+The colors are defined with a hex value (above, red -> blue).
+
+To create a palette with stops you can use:
+
+```lightCtrl.CreateColorPaletteWithStops("FF0000", "0000FF", Array(127), Array("00FF00"))```
+
+Here we need to pass in the start and end colors with an array of stop posistions and an array of stop colors for those positions. Note the palette is 255 colors, so the above creates a green stop at position 127 (50%).
+
+#### How palette are applied to sequences
+
+You can use palettes with either any custom sequence or when syncing lights with vpx sequences.
+
+ - Palette with VPX Seq
+	 - ```lightCtrl.SetVpxSyncLightsPalette paletteWithStops, "north", 0```
+			 - param1: the palette
+			 - param2: direction
+			 - param3: speed
+	 - The direction param determines how the palette is applied to the lights. The options available are:
+			 - TopToBottom
+			 - BottomToTop
+			 - LeftToRight
+			 - RightToLeft
+			 - RadialOut
+			 - RadialIn
+			 - Clockwise
+			 - AntiClockwise
+	 - The speed param allows you to shift the colors in the palette over time. 
+			 - A value of 0 or Null wont shift the colors at all during the sequence
+			 - Any other value e.g. 120 will shift the colors by 1 every 120ms.
+
 # Show Creator <a id="showCreator"></a>
 
 For more complex light sequences the controller supports exporting your table lights so that they can be imported a tool called **showcreator**
