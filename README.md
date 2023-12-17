@@ -238,7 +238,7 @@ End Sub
 
 By default this will use the current color of the light. If you want to override the color of all the lights during the sequence you can use **SetVpxSyncLightColor**
 
-````
+```
 SomeVPXLightSeq.Play SeqCircleOutOn,50,100
 lightCtrl.SyncWithVpxLights VpxCollection
 lightCtrl.SetVpxSyncLightColor RGB(255,0,0)
