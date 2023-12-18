@@ -12,7 +12,7 @@
 
 Class LStateController
 
-    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, useVpxLights, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii
+    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii
 
     Private Sub Class_Initialize()
         Set m_lights = CreateObject("Scripting.Dictionary")
@@ -33,7 +33,6 @@ Class LStateController
         m_tableSeqColor = Null
         m_tableSeqFadeUp = Null
         m_tableSeqFadeDown = Null
-        useVpxLights = False
         m_pauseMainLights = False
         Set m_pausedLights = CreateObject("Scripting.Dictionary")
         Set m_lightmaps = CreateObject("Scripting.Dictionary")
@@ -214,7 +213,6 @@ Class LStateController
 
         Dim idx,tmp,vpxLight,lcItem
     
-            useVpxLights = True
             vpmMapLights aLights
             Dim colCount : colCount = Round(tablewidth/40)
             Dim rowCount : rowCount = Round(tableheight/40)
@@ -277,7 +275,6 @@ Class LStateController
             m_centerX = m_width / 2
             m_centerY = m_height / 2
             GenerateLedMapCode()
-            PrintLEDs()
     End Sub
 
     Private Sub GenerateLedMapCode()
@@ -885,20 +882,25 @@ Public Sub SyncLightMapColors()
     Public Sub SetVpxSyncLightsPalette(palette, direction, speed)
         m_tableSeqColor = palette
         Select Case direction:
-            Case "north": 
+            Case "BottomToTop": 
                 m_tableSeqDirection = m_coordsY
                 m_tableSeqColor = ReverseArray(palette)
-            Case "south": 
+            Case "TopToBottom": 
                 m_tableSeqDirection = m_coordsY
-            Case "east": 
+            Case "RightToLeft": 
                 m_tableSeqDirection = m_coordsX
-            Case "west": 
+            Case "LeftToRight": 
                 m_tableSeqDirection = m_coordsX
                 m_tableSeqColor = ReverseArray(palette)       
-            Case "outward": 
+            Case "RadialOut": 
                 m_tableSeqDirection = m_radii      
-            Case "inward": 
+            Case "RadialIn": 
                 m_tableSeqDirection = m_radii
+                m_tableSeqColor = ReverseArray(palette) 
+            Case "Clockwise": 
+                m_tableSeqDirection = m_angles
+            Case "AntiClockwise": 
+                m_tableSeqDirection = m_angles
                 m_tableSeqColor = ReverseArray(palette) 
         End Select  
 
@@ -908,31 +910,6 @@ Public Sub SyncLightMapColors()
     Public Sub SetTableSequenceFade(fadeUp, fadeDown)
         m_tableSeqFadeUp = fadeUp
         m_tableSeqFadeDown = fadeDown
-    End Sub
-
-    Public Sub UseToolkitColoredLightMaps()
-        If useVpxLights = True Then
-            Exit Sub
-        End If
-
-        Dim sUpdateLightMap
-        sUpdateLightMap = "Sub UpdateLightMap(idx, lightmap, intensity, ByVal aLvl)" + vbCrLf    
-        sUpdateLightMap = sUpdateLightMap + "   if Lampz.UseFunc then aLvl = Lampz.FilterOut(aLvl)	'Callbacks don't get this filter automatically" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "   lightmap.Opacity = aLvl * intensity" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "   If IsArray(Lampz.obj(idx) ) Then" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "       lightmap.Color = Lampz.obj(idx)(0).color" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "   Else" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "       lightmap.color = Lampz.obj(idx).color" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "   End If" + vbCrLf
-        sUpdateLightMap = sUpdateLightMap + "End Sub" + vbCrLf
-
-        ExecuteGlobal sUpdateLightMap
-
-        Dim x
-        For x=0 to Ubound(Lampz.cCallback)
-            Lampz.cCallback(x) = Replace(Lampz.cCallback(x), "UpdateLightMap ", "UpdateLightMap " & x & ",")
-            Lampz.Callback(x) = "" 'Force Callback Sub to be build
-        Next
     End Sub
 
     Public Function GetLightIdx(light)
@@ -965,20 +942,11 @@ Public Sub SyncLightMapColors()
     End Function
 
     Private Function GetTmpLight(idx)
-        If useVpxLights = True Then
         If IsArray(Lights(idx) ) Then	'if array
-                Set GetTmpLight = Lights(idx)(0)
-            Else
-                Set GetTmpLight = Lights(idx)
-            End If
+            Set GetTmpLight = Lights(idx)(0)
         Else
-            If IsArray(Lampz.obj(idx) ) Then	'if array
-                Set GetTmpLight = Lampz.obj(idx)(0)
-            Else
-                Set GetTmpLight = Lampz.obj(idx)
-            End If
+            Set GetTmpLight = Lights(idx)
         End If
-        
     End Function
 
     Public Sub ResetLights()
@@ -1201,7 +1169,6 @@ Public Sub SyncLightMapColors()
                                         Dim colorPalleteIdx : colorPalleteIdx = IncrementUInt8(m_tableSeqDirection(lightsToLeds(syncLight.Idx)),m_tableSeqOffset)
                                         If gametime mod m_tableSeqSpeed = 0 Then
                                             m_tableSeqOffset = m_tableSeqOffset + 1
-                                            debug.print(m_tableSeqOffset)
                                             If m_tableSeqOffset > 255 Then
                                                 m_tableSeqOffset = 0
                                             End If	
@@ -1217,17 +1184,7 @@ Public Sub SyncLightMapColors()
                                     
                                 End If
                             End If
-                            
-
-                            'TODO - Fix VPX Fade
-                            If Not useVpxLights = True Then
-                                If Not IsNull(m_tableSeqFadeUp) Then
-                                    Lampz.FadeSpeedUp(syncLight.Idx) = m_tableSeqFadeUp
-                                End If
-                                If Not IsNull(m_tableSeqFadeDown) Then
-                                    Lampz.FadeSpeedDown(syncLight.Idx) = m_tableSeqFadeDown
-                                End If
-                            End If
+                        
                     
                             AssignStateForFrame syncLight.name, (new FrameState)(lx.GetInPlayState*100,color, syncLight.Idx)                     
                         End If
@@ -1246,11 +1203,6 @@ Public Sub SyncLightMapColors()
                         End If
                         If Not IsNull(syncClearLight) Then
                             AssignStateForFrame syncClearLight.name, (new FrameState)(0, Null, syncClearLight.idx) 
-                            'TODO - Only do fade speed for lampz
-                            If Not useVpxLights = True Then
-                                Lampz.FadeSpeedUp(syncClearLight.Idx) = 100/30
-                                Lampz.FadeSpeedDown(syncClearLight.Idx) = 100/120
-                            End If
                         End If
                     Next
                 End If
@@ -1291,70 +1243,45 @@ Public Sub SyncLightMapColors()
                     End If
                 End If
 
-                If useVpxLights = False Then
-                    If bUpdate Then
-                        'Update lamp color
-                        If IsArray(Lampz.obj(idx)) Then
-                            for each x in Lampz.obj(idx)
-                                If Not IsNull(c) Then
-                                    x.color = c
-                                End If
-                                If Not IsNull(cf) Then
-                                    x.colorFull = cf
-                                End If
-                            Next
-                        Else
+               
+                Dim lm
+                If IsArray(Lights(idx)) Then
+                    For Each x in Lights(idx)
+                        If bUpdate Then 
                             If Not IsNull(c) Then
-                                Lampz.obj(idx).color = c
+                                x.color = c
                             End If
                             If Not IsNull(cf) Then
-                                Lampz.obj(idx).colorFull = cf
+                                x.colorFull = cf
                             End If
-                        End If
-                        If Lampz.UseCallBack(idx) then Proc Lampz.name & idx,Lampz.Lvl(idx)*Lampz.Modulate(idx)	'Force Callbacks Proc
-                    End If
-                    Lampz.state(idx) = CInt(m_currentFrameState(frameStateKey).level) 'Lampz will handle redundant updates
-                Else
-                    Dim lm
-                    If IsArray(Lights(idx)) Then
-                        For Each x in Lights(idx)
-                            If bUpdate Then 
-                                If Not IsNull(c) Then
-                                    x.color = c
-                                End If
-                                If Not IsNull(cf) Then
-                                    x.colorFull = cf
-                                End If
-                                If m_lightmaps.Exists(x.Name) Then
-                                    For Each lm in m_lightmaps(x.Name)
-                                        If Not IsNull(lm) Then
-                                            lm.Color = c
-                                        End If
-                                    Next
-                                End If
-                            End If
-                            x.State = m_currentFrameState(frameStateKey).level/100
-                        Next
-                    Else
-                        If bUpdate Then    
-                            If Not IsNull(c) Then
-                                Lights(idx).color = c
-                            End If
-                            If Not IsNull(cf) Then
-                                Lights(idx).colorFull = cf
-                            End If
-                            If m_lightmaps.Exists(Lights(idx).Name) Then
-                                For Each lm in m_lightmaps(Lights(idx).Name)
+                            If m_lightmaps.Exists(x.Name) Then
+                                For Each lm in m_lightmaps(x.Name)
                                     If Not IsNull(lm) Then
                                         lm.Color = c
                                     End If
                                 Next
                             End If
                         End If
-                        Lights(idx).State = m_currentFrameState(frameStateKey).level/100
+                        x.State = m_currentFrameState(frameStateKey).level/100
+                    Next
+                Else
+                    If bUpdate Then    
+                        If Not IsNull(c) Then
+                            Lights(idx).color = c
+                        End If
+                        If Not IsNull(cf) Then
+                            Lights(idx).colorFull = cf
+                        End If
+                        If m_lightmaps.Exists(Lights(idx).Name) Then
+                            For Each lm in m_lightmaps(Lights(idx).Name)
+                                If Not IsNull(lm) Then
+                                    lm.Color = c
+                                End If
+                            Next
+                        End If
                     End If
+                    Lights(idx).State = m_currentFrameState(frameStateKey).level/100
                 End If
-
             Next
         End If
         m_currentFrameState.RemoveAll
