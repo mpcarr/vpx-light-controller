@@ -1,7 +1,7 @@
 
 
 '***********************************************************************************************************************
-' Lights State Controller - 9.0.0
+' Lights State Controller - 9.0.1
 '  
 ' A light state controller for original vpx tables.
 '
@@ -634,7 +634,7 @@ Class LStateController
             m_lights(light.name).Level = lvl
 
             If m_seqs.Exists(light.name & "Blink") Then
-                m_seqs(light.name & "Blink").Sequence = m_buildBlinkSeq(light)
+                m_seqs(light.name & "Blink").Sequence = m_buildBlinkSeq(light.name, light.BlinkPattern)
             End If
         End If
     End Sub
@@ -698,7 +698,7 @@ Class LStateController
             Else
                 Dim seq : Set seq = new LCSeq
                 seq.Name = light.name & "Blink"
-                seq.Sequence = m_buildBlinkSeq(light)
+                seq.Sequence = m_buildBlinkSeq(light.name, light.BlinkPattern)
                 seq.Color = Null
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
@@ -711,6 +711,139 @@ Class LStateController
             End If
         End If
     End Sub
+
+    Public Sub AddLightToBlinkGroup(group, light)
+        If m_lights.Exists(light.name) Then
+
+            If m_seqs.Exists(group & "BlinkGroup") Then
+
+                Dim i, pattern, buff : buff = Array()
+                pattern = m_seqs(group & "BlinkGroup").Pattern
+                ReDim buff(Len(pattern)-1)
+                For i = 0 To Len(pattern)-1
+                    Dim lightInSeq, ii, p, buff2
+                    buff2 = Array()
+                    If Mid(pattern, i+1, 1) = 1 Then
+                        p=1
+                    Else
+                        p=0
+                    End If
+                    ReDim buff2(UBound(m_seqs(group & "BlinkGroup").LightsInSeq)+1)
+                    ii=0
+                    For Each lightInSeq in m_seqs(group & "BlinkGroup").LightsInSeq
+                        If p = 1 Then
+                            buff2(ii) = lightInSeq & "|100"
+                        Else
+                            buff2(ii) = lightInSeq & "|0"
+                        End If
+                        ii = ii + 1
+                    Next
+                    If p = 1 Then
+                        buff2(ii) = light.name & "|100"
+                    Else
+                        buff2(ii) = light.name & "|0"
+                    End If
+                    buff(i) = buff2
+                Next
+                m_seqs(group & "BlinkGroup").Sequence = buff
+            Else
+                Dim seq : Set seq = new LCSeq
+                seq.Name = group & "BlinkGroup"
+                seq.Sequence = Array(Array(light.name & "|100"), Array(light.name & "|0"))
+                seq.Color = Null
+                seq.Pattern = "10"
+                seq.UpdateInterval = light.BlinkInterval
+                seq.Repeat = True
+                m_seqRunners.Add "lSeqRunner" & group & "BlinkGroup", new LCSeqRunner
+                m_seqs.Add group & "BlinkGroup", seq
+            End If
+        End If
+    End Sub
+
+    Public Sub RemoveLightFromBlinkGroup(group, light)
+        If m_lights.Exists(light.name) Then
+
+            If m_seqs.Exists(group & "BlinkGroup") Then
+
+                Dim i, pattern, buff : buff = Array()
+                pattern = m_seqs(group & "BlinkGroup").Pattern
+                ReDim buff(Len(pattern)-1)
+                For i = 0 To Len(pattern)-1
+                    Dim lightInSeq, ii, p, buff2
+                    buff2 = Array()
+                    If Mid(pattern, i+1, 1) = 1 Then
+                        p=1
+                    Else
+                        p=0
+                    End If
+                    ReDim buff2(UBound(m_seqs(group & "BlinkGroup").LightsInSeq)-1)
+                    ii=0
+                    For Each lightInSeq in m_seqs(group & "BlinkGroup").LightsInSeq
+                        If Not lightInSeq = light.name Then
+                            If p = 1 Then
+                                buff2(ii) = lightInSeq & "|100"
+                            Else
+                                buff2(ii) = lightInSeq & "|0"
+                            End If
+                            ii = ii + 1
+                        End If
+                    Next
+                    buff(i) = buff2
+                Next
+                AssignStateForFrame light.name, (new FrameState)(0, Null, m_lights(light.name).Idx)
+                m_seqs(group & "BlinkGroup").Sequence = buff
+            End If
+        End If
+    End Sub
+
+    Public Sub UpdateBlinkGroupPattern(group, pattern)
+        If m_seqs.Exists(group & "BlinkGroup") Then
+
+            Dim i, buff : buff = Array()
+            m_seqs(group & "BlinkGroup").Pattern = pattern
+            ReDim buff(Len(pattern)-1)
+            For i = 0 To Len(pattern)-1
+                Dim lightInSeq, ii, p, buff2
+                buff2 = Array()
+                If Mid(pattern, i+1, 1) = 1 Then
+                    p=1
+                Else
+                    p=0
+                End If
+                ReDim buff2(UBound(m_seqs(group & "BlinkGroup").LightsInSeq))
+                ii=0
+                For Each lightInSeq in m_seqs(group & "BlinkGroup").LightsInSeq
+                    If p = 1 Then
+                        buff2(ii) = lightInSeq & "|100"
+                    Else
+                        buff2(ii) = lightInSeq & "|0"
+                    End If
+                    ii = ii + 1
+                Next
+                buff(i) = buff2
+            Next
+            m_seqs(group & "BlinkGroup").Sequence = buff
+        End If
+    End Sub
+
+    Public Sub UpdateBlinkGroupInterval(group, interval)
+        If m_seqs.Exists(group & "BlinkGroup") Then
+            m_seqs(group & "BlinkGroup").UpdateInterval = interval
+        End If 
+    End Sub
+    
+    Public Sub StartBlinkGroup(group)
+        If m_seqs.Exists(group & "BlinkGroup") Then
+            AddLightSeq "lSeqRunner" & group & "BlinkGroup", m_seqs(group & "BlinkGroup")
+        End If
+    End Sub
+
+    Public Sub StopBlinkGroup(group)
+        If m_seqs.Exists(group & "BlinkGroup") Then
+            RemoveLightSeq "lSeqRunner" & group & "BlinkGroup", m_seqs(group & "BlinkGroup")
+        End If
+    End Sub
+
 
     Public Function GetLightState(light)
         GetLightState = 0
@@ -927,15 +1060,15 @@ Public Sub SyncLightMapColors()
         
     End Function
 
-    Private Function m_buildBlinkSeq(light)
+    Private Function m_buildBlinkSeq(lightName, pattern)
         Dim i, buff : buff = Array()
-        ReDim buff(Len(light.BlinkPattern)-1)
-        For i = 0 To Len(light.BlinkPattern)-1
+        ReDim buff(Len(pattern)-1)
+        For i = 0 To Len(pattern)-1
             
-            If Mid(light.BlinkPattern, i+1, 1) = 1 Then
-                buff(i) = light.name & "|100"
+            If Mid(pattern, i+1, 1) = 1 Then
+                buff(i) = lightName & "|100"
             Else
-                buff(i) = light.name & "|0"
+                buff(i) = lightName & "|0"
             End If
         Next
         m_buildBlinkSeq=buff
@@ -1089,6 +1222,24 @@ Public Sub SyncLightMapColors()
                 Next
             End If
 
+            If HasKeys(m_off) Then
+                For Each lightKey in m_off.Keys()
+                    Set lcItem = m_off(lightKey)
+                    AssignStateForFrame lightKey, (new FrameState)(0, Null, lcItem.Idx)
+                Next
+            End If
+
+        
+            If HasKeys(m_seqRunners) Then
+                Dim k
+                For Each k in m_seqRunners.Keys()
+                    Dim lsRunner: Set lsRunner = m_seqRunners(k)
+                    If Not IsNull(lsRunner.CurrentItem) Then
+                            RunLightSeq lsRunner
+                    End If
+                Next
+            End If
+
             If HasKeys(m_pulse) Then   
                 For Each lightKey in m_pulse.Keys()
                     Dim pulseColor : pulseColor = m_pulse(lightKey).Color
@@ -1119,25 +1270,6 @@ Public Sub SyncLightMapColors()
                     Else
                         m_pulse.Remove lightKey
                         m_pulse.Add lightKey, (new PulseState)(m_lights(lightKey),pulses, pulseIdx, pulseUpdateInt, pulseCount, pulseColor)
-                    End If
-                Next
-            End If
-
-            If HasKeys(m_off) Then
-                For Each lightKey in m_off.Keys()
-                    Set lcItem = m_off(lightKey)
-                    AssignStateForFrame lightKey, (new FrameState)(0, Null, lcItem.Idx)
-                Next
-            End If
-
-            
-            
-            If HasKeys(m_seqRunners) Then
-                Dim k
-                For Each k in m_seqRunners.Keys()
-                    Dim lsRunner: Set lsRunner = m_seqRunners(k)
-                    If Not IsNull(lsRunner.CurrentItem) Then
-                            RunLightSeq lsRunner
                     End If
                 Next
             End If
@@ -1645,7 +1777,7 @@ End Class
 
 Class LCSeq
     
-    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette
+    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette, m_pattern
 
     Public Property Get CurrentIdx()
         CurrentIdx=m_currentIdx
@@ -1667,6 +1799,7 @@ Class LCSeq
     Public Property Let Sequence(input)
         m_sequence = input
         dim item, light, lightItem
+        m_lightsInSeq.RemoveAll
         for each item in input
             If IsArray(item) Then
                 for each light in item
@@ -1767,12 +1900,21 @@ Class LCSeq
         m_repeat = input
     End Property
 
+    Public Property Get Pattern()
+        Pattern=m_pattern
+    End Property
+
+    Public Property Let Pattern(input)
+        m_pattern = input
+    End Property    
+
     Private Sub Class_Initialize()
         m_currentIdx = 0
         m_color = Array(Null, Null)
         m_updateInterval = 180
         m_repeat = False
         m_Frames = 180
+        m_pattern = Null
         Set m_lightsInSeq = CreateObject("Scripting.Dictionary")
         Set m_lastLightStates = CreateObject("Scripting.Dictionary")
     End Sub
