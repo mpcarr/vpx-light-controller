@@ -214,8 +214,8 @@ Class LStateController
         Dim idx,tmp,vpxLight,lcItem
     
             vpmMapLights aLights
-            Dim colCount : colCount = Round(tablewidth/40)
-            Dim rowCount : rowCount = Round(tableheight/40)
+            Dim colCount : colCount = Round(tablewidth/20)
+            Dim rowCount : rowCount = Round(tableheight/20)
                 
             dim ledIdx : ledIdx = 0
             redim leds(UBound(Lights)-1)
@@ -236,8 +236,8 @@ Class LStateController
                     Debug.print("Registering Light: "& vpxLight.name)
 
 
-                    Dim r : r = Round(vpxLight.y/40)
-                    Dim c : c = Round(vpxLight.x/40)
+                    Dim r : r = Round(vpxLight.y/20)
+                    Dim c : c = Round(vpxLight.x/20)
                     If r < rowCount And c < colCount And r >= 0 And c >= 0 Then
                         If Not ledGrid(r,c) = "" Then
                             MsgBox(vpxLight.name & " is too close to another light")
@@ -254,7 +254,7 @@ Class LStateController
                     End If
                     Dim e, lmStr: lmStr = "lmArr = Array("    
                     For Each e in GetElements()
-                        If InStr(e.Name, "_" & vpxLight.Name & "_") Or InStr(e.Name, "_" & vpxLight.UserValue & "_") Then
+                        If InStr(LCase(e.Name), LCase("_" & vpxLight.Name & "_")) Or InStr(LCase(e.Name), LCase("_" & vpxLight.UserValue & "_")) Then
                             Debug.Print(e.Name)
                             lmStr = lmStr & e.Name & ","
                         End If
@@ -305,7 +305,7 @@ Class LStateController
             
                 Dim radius : radius = Sqr((x - m_centerX) ^ 2 + (y - m_centerY) ^ 2)
                 Dim radians: radians = Atn2(m_centerY - y, m_centerX - x)
-            
+                Dim angle
                 angle = radians * (180 / 3.141592653589793)
                 Do While angle < 0
                     angle = angle + 360
@@ -509,6 +509,16 @@ Class LStateController
         End If
     End Sub
 
+    Public Function GetLightColor(light)
+        If m_lights.Exists(light.name) Then
+            Dim colors : colors = m_lights(light.name).Color
+            GetLightColor = colors(0)
+        Else
+            GetLightColor = RGB(0,0,0)
+        End If
+    End Function
+
+
     Private Sub m_LightOn(name)
         
         If m_lights.Exists(name) Then
@@ -561,6 +571,7 @@ Class LStateController
             If m_off.Exists(name) Then 
                 Exit Sub
             End If
+            LightColor m_lights(name), m_lights(name).BaseColor
             m_off.Add name, m_lights(name)
         End If
     End Sub
@@ -1711,7 +1722,7 @@ End Class
 
 Class LCItem
     
-    Private m_Idx, m_State, m_blinkSeq, m_color, m_name, m_level, m_x, m_y
+    Private m_Idx, m_State, m_blinkSeq, m_color, m_name, m_level, m_x, m_y, m_baseColor
 
         Public Property Get Idx()
             Idx=m_Idx
@@ -1719,6 +1730,10 @@ Class LCItem
 
         Public Property Get Color()
             Color=m_color
+        End Property
+
+        Public Property Get BaseColor()
+            BaseColor=m_baseColor
         End Property
 
         Public Property Let Color(input)
@@ -1767,6 +1782,7 @@ Class LCItem
             Else
                 m_color = color
             End If
+            m_baseColor = m_color
             m_name = name
             m_level = 100
             m_x = x
@@ -2025,4 +2041,3 @@ Class LCSeqRunner
     End Function
 
     End Class
-
