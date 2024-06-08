@@ -12,7 +12,7 @@
 
 Class LStateController
 
-    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii
+    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii, m_tags
 
     Private Sub Class_Initialize()
         Set m_lights = CreateObject("Scripting.Dictionary")
@@ -24,6 +24,7 @@ Class LStateController
         Set m_seqs = CreateObject("Scripting.Dictionary")
         Set m_pulse = CreateObject("Scripting.Dictionary")
         Set m_on = CreateObject("Scripting.Dictionary")
+        Set m_tags = CreateObject("Scripting.Dictionary")
         m_vpxLightSyncRunning = False
         m_vpxLightSyncCollection = Null
         m_initFrameTime = 0
@@ -429,11 +430,11 @@ Class LStateController
     End Function
 
     Function IncrementUInt8(x, increment)
-    If x + increment > 255 Then
-        IncrementUInt8 = x + increment - 256
-    Else
-        IncrementUInt8 = x + increment
-    End If
+        If x + increment > 255 Then
+            IncrementUInt8 = x + increment - 256
+        Else
+            IncrementUInt8 = x + increment
+        End If
     End Function
 
     Public Sub AddLight(light, idx)
@@ -445,6 +446,39 @@ Class LStateController
         m_lights.Add light.Name, lcItem
         m_seqRunners.Add "lSeqRunner" & CStr(light.name), new LCSeqRunner
     End Sub
+
+    Public Sub AddLightTags(light, tags)
+        If m_lights.Exists(light.name) Then
+            Dim tagArray, tag, lightName
+            lightName = light.name
+            tagArray = Split(tags, ",")
+            
+            For Each tag In tagArray
+                tag = Trim(tag) ' Remove any leading or trailing spaces
+                If Not m_tags.Exists(tag) Then
+                    Set m_tags(tag) = CreateObject("Scripting.Dictionary")
+                End If
+                If Not m_tags(tag).Exists(lightName) Then
+                    m_tags(tag).Add lightName, True
+                End If
+            Next
+        End If
+    End Sub
+
+    Public Function GetLightsForTag(tag)
+        Dim lightsArray, lightName
+        If m_tags.Exists(tag) Then
+            ReDim lightsArray(m_tags(tag).Count - 1)
+            Dim i : i = 0
+            For Each lightName In m_tags(tag)
+                lightsArray(i) = lightName
+                i = i + 1
+            Next
+            GetLightsForTag = lightsArray
+        Else
+            GetLightsForTag = Array()
+        End If
+    End Function
 
     Public Sub LightState(light, state)
         m_lightOff(light.name)
@@ -478,7 +512,7 @@ Class LStateController
             seq.UpdateInterval = 20
             seq.Repeat = False
             m_lights(light.name).Color = color
-            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem seq
+            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Fade", seq, 1, 20, Null
             If color = RGB(0,0,0) Then
                 m_lightOff(light.name)
             End If
@@ -517,7 +551,6 @@ Class LStateController
             GetLightColor = RGB(0,0,0)
         End If
     End Function
-
 
     Private Sub m_LightOn(name)
         
@@ -585,7 +618,6 @@ Class LStateController
         End If
     End Sub
 
-
     Public Sub Pulse(light, repeatCount)
         Dim name : name = light.name
         If m_lights.Exists(name) Then
@@ -650,12 +682,11 @@ Class LStateController
         End If
     End Sub
 
-
     Public Sub AddShot(name, light, color)
         If m_lights.Exists(light.name) Then
             If m_seqs.Exists(name & light.name) Then
                 m_seqs(name & light.name).Color = color
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem m_seqs(name & light.name)
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddSequenceItem m_seqs(name & light.name)
             Else
                 Dim stateOn : stateOn = light.name&"|100"
                 Dim stateOff : stateOff = light.name&"|0"
@@ -666,7 +697,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem seq
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, light.BlinkInterval, Null
                 m_seqs.Add name & light.name, seq
             End If
             If m_on.Exists(light.name) Then
@@ -705,7 +736,7 @@ Class LStateController
             If m_seqs.Exists(light.name & "Blink") Then
                 m_seqs(light.name & "Blink").ResetInterval
                 m_seqs(light.name & "Blink").CurrentIdx = 0
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem m_seqs(light.name & "Blink")
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddSequenceItem m_seqs(light.name & "Blink")
             Else
                 Dim seq : Set seq = new LCSeq
                 seq.Name = light.name & "Blink"
@@ -714,7 +745,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem seq
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq, -1, light.BlinkInterval, Null
                 m_seqs.Add light.name & "Blink", seq
             End If
             If m_on.Exists(light.name) Then
@@ -845,16 +876,18 @@ Class LStateController
     
     Public Sub StartBlinkGroup(group)
         If m_seqs.Exists(group & "BlinkGroup") Then
-            AddLightSeq "lSeqRunner" & group & "BlinkGroup", m_seqs(group & "BlinkGroup")
+            If Not m_seqRunners.Exists("lSeqRunner" & group & "BlinkGroup") Then
+                CreateSeqRunner "lSeqRunner" & group & "BlinkGroup"
+            End If
+            m_seqRunners("lSeqRunner" & group & "BlinkGroup").AddSequenceItem m_seqs(group & "BlinkGroup")
         End If
     End Sub
 
     Public Sub StopBlinkGroup(group)
         If m_seqs.Exists(group & "BlinkGroup") Then
-            RemoveLightSeq "lSeqRunner" & group & "BlinkGroup", m_seqs(group & "BlinkGroup")
+            RemoveLightSeq "lSeqRunner" & group & "BlinkGroup", m_seqs(group & "BlinkGroup").Name
         End If
     End Sub
-
 
     Public Function GetLightState(light)
         GetLightState = 0
@@ -896,21 +929,21 @@ Class LStateController
         m_seqOverrideRunners.Add name, seqRunner
     End Sub
 
-    Public Sub AddLightSeq(lcSeqRunner, lcSeq)
-        If Not m_seqRunners.Exists(lcSeqRunner) Then
-            Exit Sub
+    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens)
+        If Not m_seqRunners.Exists(runner) Then
+            CreateSeqRunner runner
         End If
 
-        m_seqRunners(lcSeqRunner).AddItem lcSeq
+        m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens
     End Sub
 
-    Public Sub RemoveLightSeq(lcSeqRunner, lcSeq)
-        If Not m_seqRunners.Exists(lcSeqRunner) Then
+    Public Sub RemoveLightSeq(runner, key)
+        If Not m_seqRunners.Exists(runner) Then
             Exit Sub
         End If
 
         Dim light
-        For Each light in lcSeq.LightsInSeq
+        For Each light in m_seqRunners(runner).ItemByKey(key).LightsInSeq
             If(m_lights.Exists(light)) Then
                     AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
             End If
@@ -953,7 +986,7 @@ Class LStateController
                 AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
             Next
         End If
-        m_seqOverrideRunners(name).AddItem lcSeq
+        m_seqOverrideRunners(name).AddSequenceItem lcSeq
     End Sub
 
     Public Sub RemoveTableLightSeq(name, lcSeq)
@@ -986,7 +1019,7 @@ Class LStateController
         Next
     End Sub
 
-Public Sub SyncLightMapColors()
+    Public Sub SyncLightMapColors()
         dim light,lm
         For Each light in m_lights.Keys()
             If m_lightmaps.Exists(light) Then
@@ -1134,7 +1167,7 @@ Public Sub SyncLightMapColors()
                 dim tmpSeq : Set tmpSeq = new LCSeqRunner
                 dim seqItem
                 For Each seqItem in m_seqRunners(Item).Items.Items()
-                    tmpSeq.AddItem seqItem
+                    tmpSeq.AddSequenceItem seqItem
                 Next
                 tmpSeq.CurrentItemIdx = m_seqRunners(Item).CurrentItemIdx
                 pseqs.add item, tmpSeq
@@ -1476,65 +1509,64 @@ Public Sub SyncLightMapColors()
     End Function
 
     Public Function CreateColorPalette(startColor, endColor, steps)
-    Dim colors()
-    ReDim colors(steps)
-    
-    Dim startRed, startGreen, startBlue, endRed, endGreen, endBlue
-    startRed = HexToInt(Left(startColor, 2))
-    startGreen = HexToInt(Mid(startColor, 3, 2))
-    startBlue = HexToInt(Right(startColor, 2))
-    endRed = HexToInt(Left(endColor, 2))
-    endGreen = HexToInt(Mid(endColor, 3, 2))
-    endBlue = HexToInt(Right(endColor, 2))
-    
-    Dim redDiff, greenDiff, blueDiff
-    redDiff = endRed - startRed
-    greenDiff = endGreen - startGreen
-    blueDiff = endBlue - startBlue
-    
-    Dim i
-    For i = 0 To steps
-        Dim red, green, blue
-        red = startRed + (redDiff * (i / steps))
-        green = startGreen + (greenDiff * (i / steps))
-        blue = startBlue + (blueDiff * (i / steps))
-        colors(i) = RGB(red,green,blue)'IntToHex(red, 2) & IntToHex(green, 2) & IntToHex(blue, 2)
-    Next
-    
-    CreateColorPalette = colors
+        Dim colors()
+        ReDim colors(steps)
+        
+        Dim startRed, startGreen, startBlue, endRed, endGreen, endBlue
+        startRed = HexToInt(Left(startColor, 2))
+        startGreen = HexToInt(Mid(startColor, 3, 2))
+        startBlue = HexToInt(Right(startColor, 2))
+        endRed = HexToInt(Left(endColor, 2))
+        endGreen = HexToInt(Mid(endColor, 3, 2))
+        endBlue = HexToInt(Right(endColor, 2))
+        
+        Dim redDiff, greenDiff, blueDiff
+        redDiff = endRed - startRed
+        greenDiff = endGreen - startGreen
+        blueDiff = endBlue - startBlue
+        
+        Dim i
+        For i = 0 To steps
+            Dim red, green, blue
+            red = startRed + (redDiff * (i / steps))
+            green = startGreen + (greenDiff * (i / steps))
+            blue = startBlue + (blueDiff * (i / steps))
+            colors(i) = RGB(red,green,blue)'IntToHex(red, 2) & IntToHex(green, 2) & IntToHex(blue, 2)
+        Next
+        
+        CreateColorPalette = colors
     End Function
-
 
     Function CreateColorPaletteWithStops(startColor, endColor, stopPositions, stopColors)
 
-    Dim colors(255)
+        Dim colors(255)
 
-    Dim fStop : fStop = CreateColorPalette(startColor, stopColors(0), stopPositions(0))
-    Dim i, istep
-    For i = 0 to stopPositions(0)
-        colors(i) = fStop(i)
-    Next
-    For i = 1 to Ubound(stopColors)
-        Dim stopStep : stopStep = CreateColorPalette(stopColors(i-1), stopColors(i), stopPositions(i))
-        Dim ii
-    ' MsgBox(stopPositions(i) - stopPositions(i-1))
-        istep = 0
-        For ii = stopPositions(i-1)+1 to stopPositions(i)
-        '  MsgBox(ii)
-        colors(ii) = stopStep(iStep)
-        iStep = iStep + 1
+        Dim fStop : fStop = CreateColorPalette(startColor, stopColors(0), stopPositions(0))
+        Dim i, istep
+        For i = 0 to stopPositions(0)
+            colors(i) = fStop(i)
         Next
-    Next
-    ' MsgBox("Here")
-    Dim eStop : eStop = CreateColorPalette(stopColors(UBound(stopColors)), endColor, 255-stopPositions(UBound(stopPositions)))
-    'MsgBox(UBound(eStop))
-    iStep = 0
-    For i = 255-(255-stopPositions(UBound(stopPositions))) to 254
-        colors(i) = eStop(iStep)
-        iStep = iStep + 1
-    Next
+        For i = 1 to Ubound(stopColors)
+            Dim stopStep : stopStep = CreateColorPalette(stopColors(i-1), stopColors(i), stopPositions(i))
+            Dim ii
+        ' MsgBox(stopPositions(i) - stopPositions(i-1))
+            istep = 0
+            For ii = stopPositions(i-1)+1 to stopPositions(i)
+            '  MsgBox(ii)
+            colors(ii) = stopStep(iStep)
+            iStep = iStep + 1
+            Next
+        Next
+        ' MsgBox("Here")
+        Dim eStop : eStop = CreateColorPalette(stopColors(UBound(stopColors)), endColor, 255-stopPositions(UBound(stopPositions)))
+        'MsgBox(UBound(eStop))
+        iStep = 0
+        For i = 255-(255-stopPositions(UBound(stopPositions))) to 254
+            colors(i) = eStop(iStep)
+            iStep = iStep + 1
+        Next
 
-    CreateColorPaletteWithStops = colors
+        CreateColorPaletteWithStops = colors
     End Function
 
     Private Function HasKeys(o)
@@ -1566,7 +1598,7 @@ Public Sub SyncLightMapColors()
             'I remember: Only reset the light if there isn't frame data for the light. 
             'e.g. a previous seq has affected the light, we don't want to clear that here on this frame
                 If m_lights.Exists(lightInSeq) = True AND NOT m_currentFrameState.Exists(lightInSeq) Then
-                AssignStateForFrame lightInSeq, (new FrameState)(0, Null, m_lights(lightInSeq).Idx)
+                    AssignStateForFrame lightInSeq, (new FrameState)(0, Null, m_lights(lightInSeq).Idx)
                 End If
             Else
                 
@@ -1768,11 +1800,11 @@ Class LCItem
         End Property
 
         Public Property Get Row()
-            Row=Round(m_x/40)
+            Row=Round(m_x/20)
         End Property
 
         Public Property Get Col()
-            Col=Round(m_y/40)
+            Col=Round(m_y/20)
         End Property
 
         Public Sub Init(idx, intervalMs, color, name, x, y)
@@ -1793,7 +1825,7 @@ End Class
 
 Class LCSeq
     
-    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette, m_pattern
+    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette, m_pattern, m_tokens, m_loops
 
     Public Property Get CurrentIdx()
         CurrentIdx=m_currentIdx
@@ -1804,6 +1836,14 @@ Class LCSeq
         m_currentIdx = input
     End Property
 
+    Public Property Get Tokens()
+        Tokens=m_tokens
+    End Property
+
+    Public Property Let Tokens(input)
+        Set m_tokens = input
+    End Property    
+
     Public Property Get LightsInSeq()
         LightsInSeq=m_lightsInSeq.Keys()
     End Property
@@ -1813,25 +1853,61 @@ Class LCSeq
     End Property
     
     Public Property Let Sequence(input)
-        m_sequence = input
-        dim item, light, lightItem
+        Dim item, light, lightItem, token
         m_lightsInSeq.RemoveAll
-        for each item in input
+        Dim i, x
+    
+        ' Iterate through the input array
+        For i = 0 To UBound(input)
+            item = input(i)
             If IsArray(item) Then
-                for each light in item
-                    lightItem = Split(light,"|")
+                For x = 0 To UBound(item)
+                    light = item(x)
+                    lightItem = Split(light, "|")
+                    token = IsToken(lightItem(0))
+                    If Not IsNull(token) Then
+                        lightItem(0) = m_tokens(token)
+                    End If
                     If Not m_lightsInSeq.Exists(lightItem(0)) Then
                         m_lightsInSeq.Add lightItem(0), True
-                    End If    
-                next
+                    End If
+                    light = Join(lightItem, "|")
+                    item(x) = light
+                    Debug.Print(light)
+                Next
+                ' Update the input array with modified item array
+                input(i) = item
             Else
-                lightItem = Split(item,"|")
+                lightItem = Split(item, "|")
+                token = IsToken(lightItem(0))
+                If Not IsNull(token) Then
+                    lightItem(0) = m_tokens(token)
+                End If
                 If Not m_lightsInSeq.Exists(lightItem(0)) Then
                     m_lightsInSeq.Add lightItem(0), True
                 End If
+                light = Join(lightItem, "|")
+                ' Update the input array with modified item string
+                input(i) = light
             End If
-        next
+        Next
+        ' Assign the modified input array to m_sequence
+        m_sequence = input
     End Property
+
+    Private Function IsToken(mainString)
+        ' Check if the string contains an opening parenthesis and ends with a closing parenthesis
+        If InStr(mainString, "(") > 0 And Right(mainString, 1) = ")" Then
+            ' Extract the substring within the parentheses
+            Dim startPos, subString
+            startPos = InStr(mainString, "(")
+            subString = Mid(mainString, startPos + 1, Len(mainString) - startPos - 1)
+            IsToken = subString
+        Else
+            IsToken = Null
+        End If
+    End Function
+    
 
     Public Property Get LastLightState(light)
         If m_lastLightStates.Exists(light) Then
@@ -1916,6 +1992,14 @@ Class LCSeq
         m_repeat = input
     End Property
 
+    Public Property Get Loops()
+        Loops=m_loops
+    End Property
+
+    Public Property Let Loops(input)
+        m_loops = input
+    End Property
+
     Public Property Get Pattern()
         Pattern=m_pattern
     End Property
@@ -1929,6 +2013,7 @@ Class LCSeq
         m_color = Array(Null, Null)
         m_updateInterval = 180
         m_repeat = False
+        m_loops = 1
         m_Frames = 180
         m_pattern = Null
         Set m_lightsInSeq = CreateObject("Scripting.Dictionary")
@@ -1953,7 +2038,7 @@ End Class
 
 Class LCSeqRunner
     
-    Private m_name, m_items,m_currentItemIdx
+    Private m_name, m_items, m_currentItemIdx
 
     Public Property Get Name()
         Name=m_name
@@ -1965,6 +2050,10 @@ Class LCSeqRunner
 
     Public Property Get Items()
         Set Items = m_items
+    End Property
+
+    Public Property Get ItemByKey(key)
+        Set Items = m_items(key)
     End Property
 
     Public Property Get CurrentItemIdx()
@@ -1992,10 +2081,32 @@ Class LCSeqRunner
         m_currentItemIdx = 0
     End Sub
 
-    Public Sub AddItem(item)
-        If Not IsNull(item) Then
-            If Not m_items.Exists(item.Name) Then
-                m_items.Add item.Name, item
+    Public Sub AddItem(key, sequence, loops, speed, tokens)
+        If Not IsNull(sequence) Then
+
+            Dim lSeq : Set lSeq = New LCSeq
+            lSeq.Name = key
+            lSeq.Tokens = tokens
+            lSeq.Sequence = sequence
+            lSeq.UpdateInterval = speed
+            lSeq.Loops = loops
+
+            If Not m_items.Exists(key) Then
+                m_items.Add key, lSeq
+            End If
+        End If
+    End Sub
+
+    Public Sub AddSequenceItem(sequence)
+        If Not IsNull(sequence) Then
+            Dim loops
+            If sequence.Repeat = True Then
+                sequence.Loops = -1
+            Else
+                sequence.Loops = 1
+            End If
+            If Not m_items.Exists(sequence.Name) Then
+                m_items.Add sequence.Name, sequence
             End If
         End If
     End Sub
@@ -2009,21 +2120,23 @@ Class LCSeqRunner
         Next
     End Sub
 
-    Public Sub RemoveItem(item)
-        If Not IsNull(item) Then
-            If m_items.Exists(item.Name) Then
-                    item.ResetInterval
-                    item.CurrentIdx = 0
-                    m_items.Remove item.Name
-            End If
+    Public Sub RemoveItem(key)
+        If m_items.Exists(key) Then
+                m_items(key).ResetInterval
+                m_items(key).CurrentIdx = 0
+                m_items.Remove key
         End If
     End Sub
 
     Public Sub NextItem()
         Dim items: items = m_items.Items
-        If items(m_currentItemIdx).Repeat = False Then
-            RemoveItem(items(m_currentItemIdx))
+        Dim keys : keys = m_items.Keys
+        If items(m_currentItemIdx).Loops = 1 Then
+            RemoveItem(keys(m_currentItemIdx))
         Else
+            If items(m_currentItemIdx).Loops > 1 Then
+                items(keys(m_currentItemIdx)).Loops = items(keys(m_currentItemIdx)).Loops - 1
+            End If
             m_currentItemIdx = m_currentItemIdx + 1
         End If
         
@@ -2032,12 +2145,12 @@ Class LCSeqRunner
         End If
     End Sub
 
-    Public Function HasSeq(name)
-        If m_items.Exists(name) Then
+    Public Function HasSeq(key)
+        If m_items.Exists(key) Then
             HasSeq = True
         Else
             HasSeq = False
         End If
     End Function
 
-    End Class
+End Class
