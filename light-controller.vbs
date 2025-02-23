@@ -1,7 +1,7 @@
 
 
 '***********************************************************************************************************************
-' Lights State Controller - 0.9.1
+' Lights State Controller - 0.9.2
 '  
 ' A light state controller for original vpx tables.
 '
