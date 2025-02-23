@@ -1,7 +1,7 @@
 
 
 '***********************************************************************************************************************
-' Lights State Controller - 0.9.2
+' Lights State Controller - 0.9.3
 '  
 ' A light state controller for original vpx tables.
 '
@@ -255,9 +255,11 @@ Class LStateController
                     End If
                     Dim e, lmStr: lmStr = "lmArr = Array("    
                     For Each e in GetElements()
-                        If InStr(LCase(e.Name), LCase("_" & vpxLight.Name & "_")) Or InStr(LCase(e.Name), LCase("_" & vpxLight.UserValue & "_")) Then
-                            Debug.Print(e.Name)
-                            lmStr = lmStr & e.Name & ","
+                        If typename(e) <> "IDecal" Then
+                            If InStr(LCase(e.Name), LCase("_" & vpxLight.Name & "_")) Or InStr(LCase(e.Name), LCase("_" & vpxLight.UserValue & "_")) Then
+                                Debug.Print(e.Name)
+                                lmStr = lmStr & e.Name & ","
+                            End If
                         End If
                     Next
                     lmStr = lmStr & "Null)"
@@ -554,7 +556,7 @@ Class LStateController
                 m_off.Remove(name)
             End If
             If m_seqs.Exists(name & "Blink") Then
-                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
+                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem name & "Blink"
             End If
             If m_on.Exists(name) Then 
                 Exit Sub
@@ -571,7 +573,7 @@ Class LStateController
             End If
 
             If m_seqs.Exists(name & "Blink") Then
-                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
+                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem name & "Blink"
             End If
 
             If m_on.Exists(name) Then 
@@ -592,7 +594,7 @@ Class LStateController
             End If
 
             If m_seqs.Exists(name & "Blink") Then
-                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
+                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem name & "Blink"
             End If
 
             If m_off.Exists(name) Then 
@@ -684,7 +686,8 @@ Class LStateController
             Else
                 Dim stateOn : stateOn = light.name&"|100"
                 Dim stateOff : stateOff = light.name&"|0"
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, Array(stateOn, stateOff,stateOn, stateOff), -1, light.BlinkInterval, Null
+                Dim seq : Set seq = m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem(name & light.name, Array(stateOn, stateOff,stateOn, stateOff), -1, light.BlinkInterval, Null)
+                seq.Color = color
                 m_seqs.Add name & light.name, seq
             End If
             If m_on.Exists(light.name) Then
@@ -695,7 +698,7 @@ Class LStateController
 
     Public Sub RemoveShot(name, light)
         If m_lights.Exists(light.name) And m_seqs.Exists(name & light.name) Then
-            m_seqRunners("lSeqRunner"&CStr(light.name)).RemoveItem m_seqs(name & light.name)
+            m_seqRunners("lSeqRunner"&CStr(light.name)).RemoveItem name & light.name
             If IsNUll(m_seqRunners("lSeqRunner"&CStr(light.name)).CurrentItem) Then
             LightOff(light)
             End If
@@ -725,7 +728,8 @@ Class LStateController
                 m_seqs(light.name & "Blink").CurrentIdx = 0
                 m_seqRunners("lSeqRunner"&CStr(light.name)).AddSequenceItem m_seqs(light.name & "Blink")
             Else
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", m_buildBlinkSeq(light.name, light.BlinkPattern), -1, light.BlinkInterval, Null
+                Dim seq : Set seq = m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem(light.name & "Blink", m_buildBlinkSeq(light.name, light.BlinkPattern), -1, light.BlinkInterval, Null)
+                seq.Color = m_lights(light.name).Color
                 m_seqs.Add light.name & "Blink", seq
             End If
             If m_on.Exists(light.name) Then
@@ -929,7 +933,7 @@ Class LStateController
             End If
         Next
 
-        m_seqRunners(lcSeqRunner).RemoveItem lcSeq
+        m_seqRunners(lcSeqRunner).RemoveItem key
     End Sub
 
     Public Sub RemoveAllLightSeq(lcSeqRunner)
@@ -969,11 +973,11 @@ Class LStateController
         m_seqOverrideRunners(name).AddSequenceItem lcSeq
     End Sub
 
-    Public Sub RemoveTableLightSeq(name, lcSeq)
+    Public Sub RemoveTableLightSeq(name, key)
         If Not m_seqOverrideRunners.Exists(name) Then
             Exit Sub
         End If
-        m_seqOverrideRunners(name).RemoveItem lcSeq
+        m_seqOverrideRunners(name).RemoveItem key
         Dim seqOverride, hasOverride
         hasOverride = False
         For Each seqOverride In m_seqOverrideRunners.Keys()
@@ -1559,7 +1563,12 @@ Class LStateController
 
     Private Sub RunLightSeq(seqRunner)
 
-        Dim lcSeq: Set lcSeq = seqRunner.CurrentItem
+        Dim lcSeq
+        If m_seqs.Exists(seqRunner.CurrentItem.Name) Then
+            Set lcSeq = m_seqs(seqRunner.CurrentItem.Name)
+        Else
+            Set lcSeq = seqRunner.CurrentItem
+        End If
         dim lsName, isSeqEnd
         If UBound(lcSeq.Sequence)<lcSeq.CurrentIdx Then
             isSeqEnd = True
@@ -1604,7 +1613,11 @@ Class LStateController
 
         If Not IsNull(seqRunner.CurrentItem) Then
             Dim framesRemaining, seq, color
-            Set lcSeq = seqRunner.CurrentItem
+            If m_seqs.Exists(seqRunner.CurrentItem.Name) Then
+                Set lcSeq = m_seqs(seqRunner.CurrentItem.Name)
+            Else
+                Set lcSeq = seqRunner.CurrentItem
+            End If
             seq = lcSeq.Sequence
             
 
@@ -2063,7 +2076,7 @@ Class LCSeqRunner
         m_currentItemIdx = 0
     End Sub
 
-    Public Sub AddItem(key, sequence, loops, speed, tokens)
+    Public Function AddItem(key, sequence, loops, speed, tokens)
         If Not IsNull(sequence) Then
 
             Dim lSeq : Set lSeq = New LCSeq
@@ -2076,8 +2089,9 @@ Class LCSeqRunner
             If Not m_items.Exists(key) Then
                 m_items.Add key, lSeq
             End If
+            Set AddItem = lSeq
         End If
-    End Sub
+    End Function
 
     Public Sub AddSequenceItem(sequence)
         If Not IsNull(sequence) Then
