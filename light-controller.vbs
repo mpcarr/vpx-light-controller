@@ -505,14 +505,8 @@ Class LStateController
                 steps = 10
             End If
             lightColor = m_lights(light.name).Color
-            Dim seq : Set seq = new LCSeq
-            seq.Name = light.name & "Fade"
-            seq.Sequence = FadeRGB(light.name, lightColor(0), color, steps)
-            seq.Color = Null
-            seq.UpdateInterval = 20
-            seq.Repeat = False
             m_lights(light.name).Color = color
-            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Fade", seq, 1, 20, Null
+            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Fade", FadeRGB(light.name, lightColor(0), color, steps), 1, 20, Null
             If color = RGB(0,0,0) Then
                 m_lightOff(light.name)
             End If
@@ -690,14 +684,7 @@ Class LStateController
             Else
                 Dim stateOn : stateOn = light.name&"|100"
                 Dim stateOff : stateOff = light.name&"|0"
-                Dim seq : Set seq = new LCSeq
-                seq.Name = name
-                seq.Sequence = Array(stateOn, stateOff,stateOn, stateOff)
-                seq.Color = color
-                seq.UpdateInterval = light.BlinkInterval
-                seq.Repeat = True
-
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, light.BlinkInterval, Null
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, Array(stateOn, stateOff,stateOn, stateOff), -1, light.BlinkInterval, Null
                 m_seqs.Add name & light.name, seq
             End If
             If m_on.Exists(light.name) Then
@@ -738,14 +725,7 @@ Class LStateController
                 m_seqs(light.name & "Blink").CurrentIdx = 0
                 m_seqRunners("lSeqRunner"&CStr(light.name)).AddSequenceItem m_seqs(light.name & "Blink")
             Else
-                Dim seq : Set seq = new LCSeq
-                seq.Name = light.name & "Blink"
-                seq.Sequence = m_buildBlinkSeq(light.name, light.BlinkPattern)
-                seq.Color = Null
-                seq.UpdateInterval = light.BlinkInterval
-                seq.Repeat = True
-
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq, -1, light.BlinkInterval, Null
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", m_buildBlinkSeq(light.name, light.BlinkPattern), -1, light.BlinkInterval, Null
                 m_seqs.Add light.name & "Blink", seq
             End If
             If m_on.Exists(light.name) Then
@@ -1841,7 +1821,9 @@ Class LCSeq
     End Property
 
     Public Property Let Tokens(input)
-        Set m_tokens = input
+        If Not IsNull(input) Then
+            Set m_tokens = input
+        End If
     End Property    
 
     Public Property Get LightsInSeq()
