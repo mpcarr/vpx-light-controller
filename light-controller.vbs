@@ -1,7 +1,7 @@
 
 
 '***********************************************************************************************************************
-' Lights State Controller - 0.9.3
+' Lights State Controller - 0.9.1
 '  
 ' A light state controller for original vpx tables.
 '
@@ -2131,7 +2131,7 @@ Class LCSeqRunner
             RemoveItem(keys(m_currentItemIdx))
         Else
             If items(m_currentItemIdx).Loops > 1 Then
-                items(keys(m_currentItemIdx)).Loops = items(keys(m_currentItemIdx)).Loops - 1
+                items(m_currentItemIdx).Loops = items(m_currentItemIdx).Loops - 1
             End If
             m_currentItemIdx = m_currentItemIdx + 1
         End If
