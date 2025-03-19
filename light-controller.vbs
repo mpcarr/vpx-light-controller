@@ -2086,8 +2086,8 @@ Class LCSeqRunner
             lSeq.UpdateInterval = speed
             lSeq.Loops = loops
             If loops = -1 Then 
-				lSeq.Repeat = True
-			End If
+              lSeq.Repeat = True
+            End If
 
             If Not m_items.Exists(key) Then
                 m_items.Add key, lSeq
