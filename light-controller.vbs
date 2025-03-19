@@ -1,7 +1,7 @@
 
 
 '***********************************************************************************************************************
-' Lights State Controller - 0.9.1
+' Lights State Controller - 0.9.2
 '  
 ' A light state controller for original vpx tables.
 '
@@ -2085,6 +2085,9 @@ Class LCSeqRunner
             lSeq.Sequence = sequence
             lSeq.UpdateInterval = speed
             lSeq.Loops = loops
+            If loops = -1 Then 
+				lSeq.Repeat = True
+			End If
 
             If Not m_items.Exists(key) Then
                 m_items.Add key, lSeq
