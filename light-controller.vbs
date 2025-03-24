@@ -595,6 +595,7 @@ Class LStateController
 
             If m_seqs.Exists(name & "Blink") Then
                 m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem name & "Blink"
+                 m_seqs.Remove name & "Blink"
             End If
 
             If m_off.Exists(name) Then 
