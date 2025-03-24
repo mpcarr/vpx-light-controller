@@ -499,7 +499,7 @@ Class LStateController
         m_LightOnWithColor light.name, color
     End Sub
 
-    Public Sub FadeLightToColor(light, color, fadeSpeed, key)
+    Public Sub FadeLightToColor(light, color, fadeSpeed, key, loops)
         If m_lights.Exists(light.name) Then
             dim lightColor, steps
             steps = Round(fadeSpeed/20)
@@ -508,7 +508,7 @@ Class LStateController
             End If
             lightColor = m_lights(light.name).Color
             m_lights(light.name).Color = color
-            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Fade" & "_" & key, FadeRGB(light.name, lightColor(0), color, steps), -1, 20, Null
+            m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Fade" & "_" & key, FadeRGB(light.name, lightColor(0), color, steps), loops, 20, Null
             If color = RGB(0,0,0) Then
                 m_lightOff(light.name)
             End If
